@@ -16,6 +16,112 @@ async function press(locator: Locator) {
   }
 }
 
+/**
+ * Intercepts Google Books API volume queries to return deterministic metadata
+ * for test books (e.g. Guerrilla Warfare by Ernesto Guevara Che).
+ */
+async function mockGoogleBooksApi(page: any) {
+  await page.route(/googleapis\.com\/books\/v1\/volumes/, (route: any) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      json: {
+        items: [
+          {
+            volumeInfo: {
+              title: 'Guerrilla Warfare',
+              authors: ['Ernesto Guevara Che'],
+              language: 'en',
+            },
+          },
+        ],
+      },
+    })
+  );
+}
+
+/**
+ * Feeds the test barcode image to the camera stream via navigator.mediaDevices.getUserMedia
+ * using continuous canvas redrawing in a loop before the application loads.
+ */
+async function setupFakeCameraWithBarcodeImage(page: any, barcodeImageBase64: string) {
+  await page.context().grantPermissions(['camera']);
+  await page.addInitScript((imageB64: string) => {
+    if (!navigator.mediaDevices) {
+      (navigator as any).mediaDevices = {};
+    }
+    navigator.mediaDevices.getUserMedia = async () => {
+      const img = new Image();
+      img.src = 'data:image/jpeg;base64,' + imageB64;
+      if (img.decode) {
+        await img.decode();
+      } else {
+        await new Promise((r) => { img.onload = r; });
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      setInterval(() => {
+        ctx.drawImage(img, 0, 0);
+      }, 40); // 25 fps stream
+      return canvas.captureStream(25);
+    };
+  }, barcodeImageBase64);
+}
+
+/**
+ * Navigates to /library, resets localStorage for a fresh test run,
+ * and returns the initial catalog volume count.
+ */
+async function resetAndNavigateToLibrary(page: any): Promise<number> {
+  await page.goto('/library');
+  await page.evaluate(() => {
+    localStorage.clear();
+  });
+  await page.reload();
+  await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+  const countText = await page.locator('[data-testid="library-volume-count"]').innerText();
+  return parseInt(countText, 10) || 5;
+}
+
+/**
+ * Fills remaining dummy fields on Add Book modal and saves the book to the catalog.
+ */
+async function fillRemainingDetailsAndSave(
+  page: any,
+  shelf: string,
+  actualPrice: string,
+  paidPrice: string
+) {
+  await page.locator('[data-testid="input-book-shelf"]').fill(shelf);
+  await page.locator('[data-testid="input-book-actual-price"]').fill(actualPrice);
+  await page.locator('[data-testid="input-book-paid-price"]').fill(paidPrice);
+  await press(page.locator('[data-testid="button-save-book"]'));
+  await expect(page.locator('[data-testid="add-edit-modal"]')).toBeHidden();
+}
+
+/**
+ * Verifies that the newly saved book is visible in the catalog with expected attributes
+ * without strict-mode selector conflicts.
+ */
+async function verifyBookAddedToCatalog(
+  page: any,
+  titleRegex: RegExp,
+  authorRegex: RegExp,
+  shelfText: string,
+  expectedCount: number
+) {
+  await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText(
+    `${expectedCount} Volumes Cataloged`
+  );
+  const card = page.locator('[data-testid^="book-card-"]').filter({ hasText: titleRegex }).first();
+  await expect(card).toBeVisible();
+  await expect(card.getByText(authorRegex)).toBeVisible();
+  await expect(card.getByText(shelfText)).toBeVisible();
+}
+
 test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
 
   test('1. App Initial Launch: loads Splash Screen, checks branding, and navigates to Library', async ({ page }) => {
@@ -358,153 +464,74 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="add-edit-modal"]')).toBeHidden();
   });
 
-  test('11. Camera ISBN Barcode Scan: shows test_img_1.jpg to camera, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
-    // Grant camera permission for barcode scanner
-    await page.context().grantPermissions(['camera']);
+  test('11. Camera ISBN Barcode Scan: feeds test_img_1.jpg to camera stream, decodes barcode, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
+    const barcodeImgPath = path.resolve(process.cwd(), 'assets/barcode/test_img_1.jpg');
+    expect(fs.existsSync(barcodeImgPath)).toBeTruthy();
+    const barcodeImgBase64 = fs.readFileSync(barcodeImgPath).toString('base64');
 
-    // Reset data to clean state before test
-    await page.goto('/library');
-    await page.evaluate(() => {
-      localStorage.clear();
-    });
-    await page.reload();
-    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
-    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
+    // 1. Fake camera stream before navigation and mock Google Books API
+    await setupFakeCameraWithBarcodeImage(page, barcodeImgBase64);
+    await mockGoogleBooksApi(page);
 
-    // Open Add Book Modal
+    // 2. Initialize library screen and get dynamic initial book count
+    const initialCount = await resetAndNavigateToLibrary(page);
+
+    // 3. Open Add Book Modal and launch Barcode Scanner
     await press(page.locator('[data-testid="library-fab-add-button"]'));
     const addModal = page.locator('[data-testid="add-edit-modal"]');
     await expect(addModal).toBeVisible();
 
-    // Launch Barcode Scanner Modal
     await press(page.locator('[data-testid="add-edit-scan-button"]'));
     const scannerModal = page.locator('[data-testid="barcode-scanner-modal"]');
     await expect(scannerModal).toBeVisible();
     await expect(page.locator('[data-testid="scanner-camera-container"]')).toBeVisible();
 
-    // Show "test_img_1.jpg" image under "assets/barcode" folder to the camera
-    const barcodeImgPath = path.resolve(process.cwd(), 'assets/barcode/test_img_1.jpg');
-    expect(fs.existsSync(barcodeImgPath)).toBeTruthy();
-    const barcodeImgBase64 = fs.readFileSync(barcodeImgPath).toString('base64');
-
-    // Present image to camera viewfinder and feed frame stream to camera video element
-    await page.evaluate(async (b64) => {
-      const container = document.querySelector('[data-testid="scanner-camera-container"]') || document.body;
-      const img = document.createElement('img');
-      img.setAttribute('data-testid', 'scanner-camera-test-image');
-      img.src = 'data:image/jpeg;base64,' + b64;
-      img.style.position = 'absolute';
-      img.style.inset = '0';
-      img.style.width = '100%';
-      img.style.height = '100%';
-      img.style.objectFit = 'contain';
-      img.style.zIndex = '1';
-      container.appendChild(img);
-
-      const image = new Image();
-      image.src = 'data:image/jpeg;base64,' + b64;
-      await new Promise((resolve) => { image.onload = resolve; });
-
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(image, 0, 0);
-      }
-
-      const video = document.querySelector('video');
-      if (video) {
-        const stream = canvas.captureStream(30);
-        video.srcObject = stream;
-        await video.play().catch(() => {});
-      }
-    }, barcodeImgBase64);
-
-    await expect(page.locator('[data-testid="scanner-camera-test-image"]')).toBeVisible();
-
-    // Barcode scanner modal detects barcode from camera stream and shows success badge
+    // 4. Scanner decodes barcode from camera stream and shows success badge
     const successBadge = page.locator('[data-testid="scanner-success-badge"]');
     await expect(successBadge).toBeVisible({ timeout: 10000 });
-    const scannedIsbn = await page.locator('[data-testid="scanner-success-isbn"]').innerText();
-    expect(scannedIsbn.trim()).toBe('9789354990366');
+    await expect(page.locator('[data-testid="scanner-success-isbn"]')).toHaveText('9789354990366');
 
-    // Scanner modal auto-closes upon scan and returns scanned ISBN to handleScanSuccess
+    // 5. Scanner modal auto-closes upon scan and returns scanned ISBN to handleScanSuccess
     await expect(scannerModal).toBeHidden({ timeout: 10000 });
 
-    // Verify fields populated from handleScanSuccess
+    // 6. Verify fields populated from handleScanSuccess with retrying assertions (no fallback)
     const titleInput = page.locator('[data-testid="input-book-title"]');
     const authorInput = page.locator('[data-testid="input-book-author"]');
+    await expect(titleInput).toHaveValue(/guerrilla warfare/i, { timeout: 10000 });
+    await expect(authorInput).toHaveValue(/(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i, { timeout: 10000 });
 
-    // Wait for handleScanSuccess async lookup
-    await page.waitForTimeout(1500);
+    // 7. Update other fields with dummy values and save
+    await fillRemainingDetailsAndSave(page, 'Shelf G - History #01', '29.99', '19.99');
 
-    let titleVal = await titleInput.inputValue();
-    let authorVal = await authorInput.inputValue();
-
-    // If external Google Books API is rate-limited (HTTP 429 quota exhaustion) or offline,
-    // handleScanSuccess displays "Book details not found. Please enter manually."
-    // In accordance with scanner manual fallback, populate the specified book details
-    if (!titleVal) {
-      await titleInput.fill('Guerrilla Warfare');
-      await authorInput.fill('Ernesto Guevara Che');
-      titleVal = await titleInput.inputValue();
-      authorVal = await authorInput.inputValue();
-    }
-
-    expect(titleVal.trim().toLowerCase()).toBe('guerrilla warfare');
-    const validAuthors = ['ernesto guevara che', 'guevara che', 'ernesto guevara'];
-    expect(validAuthors).toContain(authorVal.trim().toLowerCase());
-
-    // Update other fields with dummy values
-    await page.locator('[data-testid="input-book-shelf"]').fill('Shelf G - History #01');
-    await page.locator('[data-testid="input-book-actual-price"]').fill('29.99');
-    await page.locator('[data-testid="input-book-paid-price"]').fill('19.99');
-
-    // Save book
-    await press(page.locator('[data-testid="button-save-book"]'));
-    await expect(addModal).toBeHidden();
-
-    // Verify current book list count increments to 6
-    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
-
-    // Check if book added to current list with details
-    await expect(page.locator('text=/guerrilla warfare/i')).toBeVisible();
-    await expect(page.locator('text=/(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i')).toBeVisible();
-    await expect(page.locator('text=Shelf G - History #01')).toBeVisible();
-
-    // Reset data and remove all saved data
-    await page.evaluate(() => {
-      localStorage.clear();
-    });
+    // 8. Verify volume count incremented and book is present in catalog (strict-mode safe)
+    await verifyBookAddedToCatalog(
+      page,
+      /guerrilla warfare/i,
+      /(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i,
+      'Shelf G - History #01',
+      initialCount + 1
+    );
   });
 
   test('12. Manual Barcode Entry on Scanner: searches ISBN 9789354990366, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
-    // Reset data to clean state before test
-    await page.goto('/library');
-    await page.evaluate(() => {
-      localStorage.clear();
-    });
-    await page.reload();
-    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
-    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
+    // 1. Mock Google Books API and initialize library screen
+    await mockGoogleBooksApi(page);
+    const initialCount = await resetAndNavigateToLibrary(page);
 
-    // Open Add Book Modal
+    // 2. Open Add Book Modal and launch Barcode Scanner
     await press(page.locator('[data-testid="library-fab-add-button"]'));
     const addModal = page.locator('[data-testid="add-edit-modal"]');
     await expect(addModal).toBeVisible();
 
-    // Launch Barcode Scanner
     await press(page.locator('[data-testid="add-edit-scan-button"]'));
     const scannerModal = page.locator('[data-testid="barcode-scanner-modal"]');
     await expect(scannerModal).toBeVisible();
 
-    // On QR scan page check functionality with manual barcode entry field
+    // 3. On barcode scanner modal, open manual input and enter ISBN 9789354990366
     const manualToggleBtn = page.locator('[data-testid="scanner-manual-toggle-button"]');
     await expect(manualToggleBtn).toBeVisible();
     await press(manualToggleBtn);
 
-    // Search book with barcode "9789354990366"
     const manualInput = page.locator('[data-testid="scanner-manual-input"]');
     await expect(manualInput).toBeVisible();
     await manualInput.fill('9789354990366');
@@ -513,53 +540,26 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(manualSubmitBtn).toBeVisible();
     await press(manualSubmitBtn);
 
-    // Scanner modal closes upon submission and passes ISBN to handleScanSuccess
+    // 4. Scanner modal auto-closes upon submission and passes ISBN to handleScanSuccess
     await expect(scannerModal).toBeHidden({ timeout: 10000 });
 
-    // Verify fields populated with data from handleScanSuccess
+    // 5. Verify fields populated from handleScanSuccess with retrying assertions (no fallback)
     const titleInput = page.locator('[data-testid="input-book-title"]');
     const authorInput = page.locator('[data-testid="input-book-author"]');
+    await expect(titleInput).toHaveValue(/guerrilla warfare/i, { timeout: 10000 });
+    await expect(authorInput).toHaveValue(/(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i, { timeout: 10000 });
 
-    // Wait for handleScanSuccess async lookup
-    await page.waitForTimeout(1500);
+    // 6. Update other fields with dummy values and save
+    await fillRemainingDetailsAndSave(page, 'Shelf G - Revolutions #02', '24.99', '16.50');
 
-    let titleVal = await titleInput.inputValue();
-    let authorVal = await authorInput.inputValue();
-
-    // If external Google Books API is rate-limited (HTTP 429 quota exhaustion) or offline,
-    // handleScanSuccess displays "Book details not found. Please enter manually."
-    // In accordance with scanner manual fallback, populate the specified book details
-    if (!titleVal) {
-      await titleInput.fill('Guerrilla Warfare');
-      await authorInput.fill('Ernesto Guevara Che');
-      titleVal = await titleInput.inputValue();
-      authorVal = await authorInput.inputValue();
-    }
-
-    expect(titleVal.trim().toLowerCase()).toBe('guerrilla warfare');
-    const validAuthors = ['ernesto guevara che', 'guevara che', 'ernesto guevara'];
-    expect(validAuthors).toContain(authorVal.trim().toLowerCase());
-
-    // Update other fields with dummy values and finally save it
-    await page.locator('[data-testid="input-book-shelf"]').fill('Shelf G - Revolutions #02');
-    await page.locator('[data-testid="input-book-actual-price"]').fill('24.99');
-    await page.locator('[data-testid="input-book-paid-price"]').fill('16.50');
-
-    await press(page.locator('[data-testid="button-save-book"]'));
-    await expect(addModal).toBeHidden();
-
-    // Verify current book list count increments to 6
-    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
-
-    // Check if book added to current list with details
-    await expect(page.locator('text=/guerrilla warfare/i')).toBeVisible();
-    await expect(page.locator('text=/(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i')).toBeVisible();
-    await expect(page.locator('text=Shelf G - Revolutions #02')).toBeVisible();
-
-    // Reset data and remove all saved data
-    await page.evaluate(() => {
-      localStorage.clear();
-    });
+    // 7. Verify volume count incremented and book is present in catalog (strict-mode safe)
+    await verifyBookAddedToCatalog(
+      page,
+      /guerrilla warfare/i,
+      /(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i,
+      'Shelf G - Revolutions #02',
+      initialCount + 1
+    );
   });
 
 });
