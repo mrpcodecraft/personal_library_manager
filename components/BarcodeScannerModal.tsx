@@ -128,7 +128,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
         <View testID="scanner-camera-container" style={styles.cameraContainer}>
           {permission?.granted ? (
             <CameraView
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               facing="back"
               enableTorch={torchEnabled}
               barcodeScannerSettings={{
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cameraFallbackBackground: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#121824',
     alignItems: 'center',
     justifyContent: 'center',
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   overlayTop: {
     flex: 1,
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   successBadge: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(253, 248, 236, 0.95)',
     borderRadius: Radii.card,
     alignItems: 'center',

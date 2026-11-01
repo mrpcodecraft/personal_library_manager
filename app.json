@@ -7,11 +7,6 @@
     "icon": "./assets/icon.png",
     "scheme": "librarymanager",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FDF8EC"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mrpcodecraft.librarymanager",
@@ -45,7 +40,15 @@
           "cameraPermission": "Allow Library Manager to access your camera to scan book ISBN barcodes."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FDF8EC"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
