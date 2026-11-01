@@ -236,6 +236,13 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Verify new book card is present in catalog
     await expect(page.locator('text=Atomic Habits')).toBeVisible();
     await expect(page.locator('text=by James Clear')).toBeVisible();
+
+    // Verify data persistence after page reload
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+    await expect(page.locator('text=Atomic Habits')).toBeVisible();
+    await expect(page.locator('text=by James Clear')).toBeVisible();
   });
 
   test('8. Edit Book Flow: pre-fills attributes, modifies title and shelf, and updates card in-place', async ({ page }) => {
@@ -272,6 +279,12 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Verify card reflects updated title and shelf location in catalog
     await expect(page.locator(`[data-testid="book-card-title-${targetBook.id}"]`)).toHaveText('The Count of Monte Cristo (Anniversary Edition)');
     await expect(page.locator(`[data-testid="book-card-shelf-${targetBook.id}"]`)).toHaveText('Vault - Collector Shelf #88');
+
+    // Verify data persistence after page reload
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator(`[data-testid="book-card-title-${targetBook.id}"]`)).toHaveText('The Count of Monte Cristo (Anniversary Edition)');
+    await expect(page.locator(`[data-testid="book-card-shelf-${targetBook.id}"]`)).toHaveText('Vault - Collector Shelf #88');
   });
 
   test('9. Delete Book Flow: verifies M3 Confirmation Dialog, cancellation, and atomic deletion', async ({ page }) => {
@@ -306,6 +319,12 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(deleteDialog).toBeHidden();
 
     // Verify book is atomically removed and volume count decreases to 4
+    await expect(page.locator(`[data-testid="book-card-${targetBook.id}"]`)).toBeHidden();
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('4 Volumes Cataloged');
+
+    // Verify data persistence after page reload
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
     await expect(page.locator(`[data-testid="book-card-${targetBook.id}"]`)).toBeHidden();
     await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('4 Volumes Cataloged');
   });
@@ -381,6 +400,97 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Close diagnostics modal
     await press(page.locator('[data-testid="device-test-close-button"]'));
     await expect(deviceModal).toBeHidden();
+  });
+
+  test('12. End-to-End Data Persistence: verifies full add, edit, and delete lifecycle across page reloads', async ({ page }) => {
+    await page.goto('/library');
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+
+    // Initial state check
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
+
+    // 1. ADD: Add a new book
+    await press(page.locator('[data-testid="library-fab-add-button"]'));
+    const addModal = page.locator('[data-testid="add-edit-modal"]');
+    await expect(addModal).toBeVisible();
+
+    await page.locator('[data-testid="input-book-title"]').fill('Design Patterns');
+    await page.locator('[data-testid="input-book-author"]').fill('Gang of Four');
+    await page.locator('[data-testid="input-book-isbn"]').fill('9780201633610');
+    await page.locator('[data-testid="input-book-shelf"]').fill('Shelf P - Architecture #05');
+    await page.locator('[data-testid="input-book-actual-price"]').fill('54.99');
+    await page.locator('[data-testid="input-book-paid-price"]').fill('39.99');
+    await press(page.locator('[data-testid="segment-type-physical"]'));
+    await page.locator('[data-testid="input-book-language"]').fill('English');
+
+    await press(page.locator('[data-testid="button-save-book"]'));
+    await expect(addModal).toBeHidden();
+
+    // Verify added in UI
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+    await expect(page.locator('text=Design Patterns')).toBeVisible();
+
+    // Reload page to verify ADD persistence
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+    await expect(page.locator('text=Design Patterns')).toBeVisible();
+    await expect(page.locator('text=by Gang of Four')).toBeVisible();
+    await expect(page.locator('text=Shelf P - Architecture #05')).toBeVisible();
+
+    // 2. EDIT: Open the newly added book context menu
+    const newBookCard = page.locator('[data-testid^="book-card-book-"]').filter({ hasText: 'Design Patterns' }).first();
+    await expect(newBookCard).toBeVisible();
+    const menuBtn = newBookCard.locator('[data-testid^="book-card-menu-button-"]');
+    await press(menuBtn);
+
+    const editMenuItem = page.locator('[data-testid^="book-card-menu-item-edit-"]').first();
+    await press(editMenuItem);
+
+    const editModal = page.locator('[data-testid="add-edit-modal"]');
+    await expect(editModal).toBeVisible();
+    await expect(page.locator('[data-testid="input-book-title"]')).toHaveValue('Design Patterns');
+
+    // Update title and shelf
+    await page.locator('[data-testid="input-book-title"]').fill('Design Patterns (Elements of Reusable OO Software)');
+    await page.locator('[data-testid="input-book-shelf"]').fill('Shelf P - Architecture #99');
+    await press(page.locator('[data-testid="button-save-book"]'));
+    await expect(editModal).toBeHidden();
+
+    // Verify updated before reload
+    await expect(page.locator('text=Design Patterns (Elements of Reusable OO Software)')).toBeVisible();
+    await expect(page.locator('text=Shelf P - Architecture #99')).toBeVisible();
+
+    // Reload page to verify EDIT persistence
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+    await expect(page.locator('text=Design Patterns (Elements of Reusable OO Software)')).toBeVisible();
+    await expect(page.locator('text=Shelf P - Architecture #99')).toBeVisible();
+
+    // 3. DELETE: Open context menu of the edited book and delete it
+    const editedCard = page.locator('[data-testid^="book-card-book-"]').filter({ hasText: 'Design Patterns (Elements of Reusable OO Software)' }).first();
+    await expect(editedCard).toBeVisible();
+    const deleteMenuBtn = editedCard.locator('[data-testid^="book-card-menu-button-"]');
+    await press(deleteMenuBtn);
+
+    const deleteMenuItem = page.locator('[data-testid^="book-card-menu-item-delete-"]').first();
+    await press(deleteMenuItem);
+
+    const deleteDialog = page.locator('[data-testid="delete-confirm-dialog"]');
+    await expect(deleteDialog).toBeVisible();
+    await press(page.locator('[data-testid="delete-confirm-button"]'));
+    await expect(deleteDialog).toBeHidden();
+
+    // Verify deleted before reload
+    await expect(page.locator('text=Design Patterns (Elements of Reusable OO Software)')).toBeHidden();
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
+
+    // Reload page to verify DELETE persistence
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('text=Design Patterns (Elements of Reusable OO Software)')).toBeHidden();
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
   });
 
 });
