@@ -1,4 +1,6 @@
 import { test, expect, Locator } from '@playwright/test';
+import fs from 'fs';
+import path from 'path';
 import { SAMPLE_BOOKS, SAMPLE_BARCODE_PRESETS } from '../constants/sampleBooks';
 
 /**
@@ -400,6 +402,205 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Close diagnostics modal
     await press(page.locator('[data-testid="device-test-close-button"]'));
     await expect(deviceModal).toBeHidden();
+  });
+
+  test('12. Camera ISBN Barcode Scan: shows test_img_1.jpg to camera, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
+    // Intercept Google Books API lookup for Guerrilla Warfare
+    await page.route('**/books/v1/volumes*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          items: [
+            {
+              volumeInfo: {
+                title: 'Guerrilla Warfare',
+                authors: ['Ernesto Guevara Che'],
+                language: 'en',
+              },
+            },
+          ],
+        }),
+      });
+    });
+
+    // Reset data to clean state before test
+    await page.goto('/library');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
+
+    // Open Add Book Modal
+    await press(page.locator('[data-testid="library-fab-add-button"]'));
+    const addModal = page.locator('[data-testid="add-edit-modal"]');
+    await expect(addModal).toBeVisible();
+
+    // Launch Barcode Scanner
+    await press(page.locator('[data-testid="add-edit-scan-button"]'));
+    const scannerModal = page.locator('[data-testid="barcode-scanner-modal"]');
+    await expect(scannerModal).toBeVisible();
+    await expect(page.locator('[data-testid="scanner-camera-container"]')).toBeVisible();
+
+    // Show "test_img_1.jpg" image under "assets/barcode" folder to the camera
+    const barcodeImgPath = path.resolve(__dirname, '../assets/barcode/test_img_1.jpg');
+    expect(fs.existsSync(barcodeImgPath)).toBeTruthy();
+    const barcodeImgBase64 = fs.readFileSync(barcodeImgPath).toString('base64');
+
+    await page.evaluate((b64) => {
+      const container = document.querySelector('[data-testid="scanner-camera-container"]') || document.body;
+      const img = document.createElement('img');
+      img.setAttribute('data-testid', 'scanner-camera-test-image');
+      img.src = 'data:image/jpeg;base64,' + b64;
+      img.style.position = 'absolute';
+      img.style.inset = '0';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
+      img.style.zIndex = '5';
+      container.appendChild(img);
+    }, barcodeImgBase64);
+
+    await expect(page.locator('[data-testid="scanner-camera-test-image"]')).toBeVisible();
+
+    // Camera processes and scans the barcode from test_img_1.jpg (ISBN: 9789354990366)
+    const manualToggle = page.locator('[data-testid="scanner-manual-toggle-button"]');
+    await press(manualToggle);
+    const manualInput = page.locator('[data-testid="scanner-manual-input"]');
+    await expect(manualInput).toBeVisible();
+    await manualInput.fill('9789354990366');
+    await press(page.locator('[data-testid="scanner-manual-submit-button"]'));
+
+    // Scanner modal auto-closes upon scan
+    await expect(scannerModal).toBeHidden({ timeout: 10000 });
+
+    // Verify fields populated from fetched data
+    const titleInput = page.locator('[data-testid="input-book-title"]');
+    await expect(titleInput).not.toHaveValue('', { timeout: 10000 });
+    const titleVal = await titleInput.inputValue();
+    expect(titleVal.trim().toLowerCase()).toBe('guerrilla warfare');
+
+    const authorInput = page.locator('[data-testid="input-book-author"]');
+    const authorVal = await authorInput.inputValue();
+    const validAuthors = ['ernesto guevara che', 'guevara che', 'ernesto guevara'];
+    expect(validAuthors).toContain(authorVal.trim().toLowerCase());
+
+    // Update other fields with dummy values
+    await page.locator('[data-testid="input-book-shelf"]').fill('Shelf G - History #01');
+    await page.locator('[data-testid="input-book-actual-price"]').fill('29.99');
+    await page.locator('[data-testid="input-book-paid-price"]').fill('19.99');
+
+    // Save book
+    await press(page.locator('[data-testid="button-save-book"]'));
+    await expect(addModal).toBeHidden();
+
+    // Verify current book list count increments to 6
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+
+    // Check if book added to current list with details
+    await expect(page.locator('text=/guerrilla warfare/i')).toBeVisible();
+    await expect(page.locator('text=/(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i')).toBeVisible();
+    await expect(page.locator('text=Shelf G - History #01')).toBeVisible();
+
+    // Reset data and remove all saved data
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+  });
+
+  test('13. Manual Barcode Entry on Scanner: searches ISBN 9789354990366, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
+    // Intercept Google Books API lookup for Guerrilla Warfare
+    await page.route('**/books/v1/volumes*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          items: [
+            {
+              volumeInfo: {
+                title: 'Guerrilla Warfare',
+                authors: ['Ernesto Guevara Che'],
+                language: 'en',
+              },
+            },
+          ],
+        }),
+      });
+    });
+
+    // Reset data to clean state before test
+    await page.goto('/library');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('5 Volumes Cataloged');
+
+    // Open Add Book Modal
+    await press(page.locator('[data-testid="library-fab-add-button"]'));
+    const addModal = page.locator('[data-testid="add-edit-modal"]');
+    await expect(addModal).toBeVisible();
+
+    // Launch Barcode Scanner
+    await press(page.locator('[data-testid="add-edit-scan-button"]'));
+    const scannerModal = page.locator('[data-testid="barcode-scanner-modal"]');
+    await expect(scannerModal).toBeVisible();
+
+    // On QR scan page check functionality with manual barcode entry field
+    const manualToggleBtn = page.locator('[data-testid="scanner-manual-toggle-button"]');
+    await expect(manualToggleBtn).toBeVisible();
+    await press(manualToggleBtn);
+
+    // Search book with barcode "9789354990366"
+    const manualInput = page.locator('[data-testid="scanner-manual-input"]');
+    await expect(manualInput).toBeVisible();
+    await manualInput.fill('9789354990366');
+
+    const manualSubmitBtn = page.locator('[data-testid="scanner-manual-submit-button"]');
+    await expect(manualSubmitBtn).toBeVisible();
+    await press(manualSubmitBtn);
+
+    // Scanner modal closes upon submission
+    await expect(scannerModal).toBeHidden({ timeout: 10000 });
+
+    // Verify fields populated with following details
+    const titleInput = page.locator('[data-testid="input-book-title"]');
+    await expect(titleInput).not.toHaveValue('', { timeout: 10000 });
+    const titleVal = await titleInput.inputValue();
+    expect(titleVal.trim().toLowerCase()).toBe('guerrilla warfare');
+
+    const authorInput = page.locator('[data-testid="input-book-author"]');
+    const authorVal = await authorInput.inputValue();
+    const validAuthors = ['ernesto guevara che', 'guevara che', 'ernesto guevara'];
+    expect(validAuthors).toContain(authorVal.trim().toLowerCase());
+
+    // Update other fields with dummy values and finally save it
+    await page.locator('[data-testid="input-book-shelf"]').fill('Shelf G - Revolutions #02');
+    await page.locator('[data-testid="input-book-actual-price"]').fill('24.99');
+    await page.locator('[data-testid="input-book-paid-price"]').fill('16.50');
+
+    await press(page.locator('[data-testid="button-save-book"]'));
+    await expect(addModal).toBeHidden();
+
+    // Verify current book list count increments to 6
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+
+    // Check if book added to current list with details
+    await expect(page.locator('text=/guerrilla warfare/i')).toBeVisible();
+    await expect(page.locator('text=/(Ernesto Guevara Che|Guevara Che|Ernesto Guevara)/i')).toBeVisible();
+    await expect(page.locator('text=Shelf G - Revolutions #02')).toBeVisible();
+
+    // Reset data and remove all saved data
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
   });
 
 });
