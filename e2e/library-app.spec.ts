@@ -54,7 +54,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Controls & FAB
     await expect(page.locator('[data-testid="library-search-toggle-button"]')).toBeVisible();
     await expect(page.locator('[data-testid="library-view-toggle-button"]')).toBeVisible();
-    await expect(page.locator('[data-testid="library-empty-preview-toggle-button"]')).toBeVisible();
     await expect(page.locator('[data-testid="library-fab-add-button"]')).toBeVisible();
 
     // Verify all 5 sample book cards are mounted
@@ -173,35 +172,18 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(searchInput).toBeHidden();
   });
 
-  test('6. View Layout Toggle & Empty State Preview: toggles grid/list and tests empty state CTA', async ({ page }) => {
+  test('6. View Layout Toggle: toggles between grid and list modes', async ({ page }) => {
     await page.goto('/library');
     await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
 
     // Toggle view mode (Grid <-> List)
-    await press(page.locator('[data-testid="library-view-toggle-button"]'));
+    const viewToggleBtn = page.locator('[data-testid="library-view-toggle-button"]');
+    await expect(viewToggleBtn).toBeVisible();
+    await press(viewToggleBtn);
     await expect(page.locator('[data-testid="library-book-list"]')).toBeVisible();
 
-    // Toggle Empty State Preview
-    await press(page.locator('[data-testid="library-empty-preview-toggle-button"]'));
-    const emptyState = page.locator('[data-testid="library-empty-state"]');
-    await expect(emptyState).toBeVisible();
-    await expect(page.locator('[data-testid="library-empty-title"]')).toHaveText('Library is empty.');
-
-    // Click "Add First Book" CTA inside Empty State
-    const emptyAddBtn = page.locator('[data-testid="library-empty-add-button"]');
-    await expect(emptyAddBtn).toBeVisible();
-    await press(emptyAddBtn);
-
-    // Verify Add Book modal opens from empty CTA
-    const addModal = page.locator('[data-testid="add-edit-modal"]');
-    await expect(addModal).toBeVisible();
-
-    // Cancel modal
-    await press(page.locator('[data-testid="add-edit-close-button"]'));
-    await expect(addModal).toBeHidden();
-
-    // Restore catalog view
-    await press(page.locator('[data-testid="library-empty-preview-toggle-button"]'));
+    // Toggle back to original layout
+    await press(viewToggleBtn);
     await expect(page.locator('[data-testid="library-book-list"]')).toBeVisible();
   });
 

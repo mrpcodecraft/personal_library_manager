@@ -43,18 +43,19 @@ npm run test:report
 - **Android Phone (Android OS):** `Pixel 7` viewport (412 × 915, 2.625x DPR, touch enabled)
 - **Desktop Web:** Desktop viewport (1280 × 800)
 
-### 11 Executed User Journeys per Device:
+### 12 Executed User Journeys per Device:
 1. **App Initial Launch:** Splash Screen branding, squircle emblem, tagline, progress track, and navigation to catalog.
 2. **Catalog Loading:** AppBar, volume counter (`5 Volumes Cataloged`), search bar, layout controls, and FAB button.
 3. **Data Integrity:** Validates exact attributes for all 5 sample books (Title, Author, Shelf location, Paid/Retail prices, Format badges, and Language chips).
 4. **Book Details Modal:** Metadata display, calculated savings percentage, ISBN, Catalog ID, and bundled sub-books breakdown.
 5. **Search Filtering:** Dynamic query filtering by title, author, and ISBN, plus clear button restoration.
-6. **Layout Toggle & Empty State:** Grid vs List view switching, empty state illustration preview, and "Add First Book" CTA button.
+6. **Layout Toggle:** Grid vs List view switching and responsive catalog layout.
 7. **Add Book Flow:** FAB click, form filling, format/language chip selection, catalog update to 6 volumes.
 8. **Edit Book Flow:** Context menu (`⋮`), pre-filled form verification, editing title/shelf, and in-place catalog update.
 9. **Delete Book Flow:** M3 Confirmation Dialog with SQL preview, operation cancellation verification, and atomic deletion.
 10. **Barcode Scanner Subsystem:** Camera viewfinder, laser targeting guideline, torch toggle, and preset ISBN auto-population.
-11. **Device Diagnostics Modal:** Hardware metrics inspection and live on-device assertion suite.
+11. **Camera ISBN Barcode Scan:** Presents `test_img_1.jpg` to camera, detects EAN-13 barcode `9789354990366`, autofills book metadata, and saves book.
+12. **Manual Barcode Entry:** Searches ISBN `9789354990366` via manual entry input, autofills book metadata, and saves book.
 
 ---
 

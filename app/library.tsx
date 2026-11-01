@@ -57,7 +57,6 @@ export default function LibraryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(isWebOrTablet ? 'grid' : 'list');
-  const [showEmptyPreview, setShowEmptyPreview] = useState(false);
 
   // Modals state
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -67,7 +66,6 @@ export default function LibraryScreen() {
 
   // Filter catalog
   const filteredBooks = useMemo(() => {
-    if (showEmptyPreview) return [];
     if (!searchQuery.trim()) return booksList;
     const q = searchQuery.toLowerCase().trim();
     return booksList.filter(
@@ -76,7 +74,7 @@ export default function LibraryScreen() {
         b.author.toLowerCase().includes(q) ||
         (b.isbn && b.isbn.toLowerCase().includes(q))
     );
-  }, [booksList, searchQuery, showEmptyPreview]);
+  }, [booksList, searchQuery]);
 
   // Action handlers
   const handleOpenAdd = () => {
@@ -186,20 +184,6 @@ export default function LibraryScreen() {
               size={20}
               color={Colors.textNavy}
             />
-          </Pressable>
-
-          {/* Design Preview Toggle: Empty State vs Populated */}
-          <Pressable
-            testID="library-empty-preview-toggle-button"
-            style={[
-              styles.stateToggleChip,
-              showEmptyPreview && styles.stateToggleChipActive,
-            ]}
-            onPress={() => setShowEmptyPreview((prev) => !prev)}
-          >
-            <Text style={styles.stateToggleText}>
-              {showEmptyPreview ? 'Show Books' : 'Preview Empty'}
-            </Text>
           </Pressable>
         </View>
       </View>
@@ -377,22 +361,6 @@ const styles = StyleSheet.create({
   },
   iconActionButtonActive: {
     backgroundColor: Colors.accentPeach,
-  },
-  stateToggleChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Radii.full,
-    backgroundColor: Colors.bgCream,
-    borderWidth: 1,
-    borderColor: Colors.borderSubtle,
-  },
-  stateToggleChipActive: {
-    backgroundColor: Colors.accentPeach,
-  },
-  stateToggleText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textNavy,
   },
   searchBarWrapper: {
     backgroundColor: Colors.bgSageMist,
