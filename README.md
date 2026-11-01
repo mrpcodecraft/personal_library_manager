@@ -20,41 +20,41 @@ Developed by **mrpcodecraft**.
 
 ---
 
-## 🧪 Automated Testing (Single Unified Approach)
+## 🧪 Automated Testing (Playwright Multi-Device E2E)
 
-The application uses **Expo (`jest-expo`)** and **React Native Testing Library** as its single, complete automated testing framework. It runs 100% programmatically and headlessly on your machine with zero external device or browser dependencies.
+The application uses **Playwright** as its single, complete End-to-End automated testing framework. It executes all user flows programmatically across simulated Android, Apple iOS, Apple iPadOS, and Desktop Web browsers.
 
 ### Run Automated Tests
 
 ```bash
+# Run all 44 tests across all 4 target devices headlessly
 npm test
+
+# Run tests with interactive Playwright UI
+npm run test:ui
+
+# View latest HTML test report
+npm run test:report
 ```
 
-### Test Suites Overview:
+### Multi-Device Targets:
+- **Apple iPhone (iOS):** `iPhone 14` viewport (390 × 844, 3x DPR, touch enabled)
+- **Apple iPad (iPadOS):** `iPad Pro 11` viewport (834 × 1194, 2x DPR, touch enabled)
+- **Android Phone (Android OS):** `Pixel 7` viewport (412 × 915, 2.625x DPR, touch enabled)
+- **Desktop Web:** Desktop viewport (1280 × 800)
 
-1. **`__tests__/AppLoads.test.tsx` (App loads):**
-   * Splash Screen branding, squircle emblem, tagline, progress bar, and developer attribution badge.
-   * Library Main Screen container, AppBar, brand title, volume count, search toggle, view toggle, and 56dp FAB button.
-   * Multi-device responsive layout adaptation across **Mobile Phone (iPhone / Android)**, **Tablet (iPad)**, and **Desktop Web Browser** viewports.
-
-2. **`__tests__/PrefilledData.test.tsx` (App loads with prefilled data):**
-   * Verifies the initial catalog mounts all 5 prefilled books from the centralized dataset.
-   * Confirms volume counter displays `5 Volumes Cataloged`.
-   * Verifies all book cards and headers are rendered with unique identifiers.
-
-3. **`__tests__/DataIntegrity.test.tsx` (All data has been loaded and correct):**
-   * Validates exact field matching for every book: Title, Author, Shelf location, Paid Price, Retail MRP, Book Type chips (`PHYSICAL` in peach / `EBOOK` in coral), and Language chips (`English` / `Hindi`).
-   * Validates combination volumes: The Lord of the Rings anthology renders combination tag and bundles all 3 sub-books with individual titles and authors.
-   * Validates Book Details modal metadata, savings calculations (`$20.01 (27%)`), ISBN, and catalog ID.
-
-4. **`__tests__/Functionality.test.tsx` (Add/Edit, delete, barcode scanner, buttons):**
-   * **Search & Filter:** Live real-time query filtering by title and author; clearing search restores full catalog.
-   * **View & Empty State:** Grid/List view mode toggle, empty state preview toggle with illustration, and "Add First Book" CTA.
-   * **Add Book:** FAB opens dialog, validates inputs, saves new book, and updates catalog count to 6 volumes.
-   * **Edit Book:** Form prefilled with book attributes, edits title in-place, and updates timestamps.
-   * **Delete Book:** M3 Confirmation Dialog with SQL preview (`DELETE FROM books WHERE id = ?`), atomic deletion, and catalog update.
-   * **Barcode Scanner:** Launches camera viewfinder with laser targeting, torch toggle, and preset ISBN auto-population.
-   * **Device Diagnostics:** Toolbar button opens device verification runner displaying platform metrics.
+### 11 Executed User Journeys per Device:
+1. **App Initial Launch:** Splash Screen branding, squircle emblem, tagline, progress track, and navigation to catalog.
+2. **Catalog Loading:** AppBar, volume counter (`5 Volumes Cataloged`), search bar, layout controls, and FAB button.
+3. **Data Integrity:** Validates exact attributes for all 5 sample books (Title, Author, Shelf location, Paid/Retail prices, Format badges, and Language chips).
+4. **Book Details Modal:** Metadata display, calculated savings percentage, ISBN, Catalog ID, and bundled sub-books breakdown.
+5. **Search Filtering:** Dynamic query filtering by title, author, and ISBN, plus clear button restoration.
+6. **Layout Toggle & Empty State:** Grid vs List view switching, empty state illustration preview, and "Add First Book" CTA button.
+7. **Add Book Flow:** FAB click, form filling, format/language chip selection, catalog update to 6 volumes.
+8. **Edit Book Flow:** Context menu (`⋮`), pre-filled form verification, editing title/shelf, and in-place catalog update.
+9. **Delete Book Flow:** M3 Confirmation Dialog with SQL preview, operation cancellation verification, and atomic deletion.
+10. **Barcode Scanner Subsystem:** Camera viewfinder, laser targeting guideline, torch toggle, and preset ISBN auto-population.
+11. **Device Diagnostics Modal:** Hardware metrics inspection and live on-device assertion suite.
 
 ---
 
@@ -86,7 +86,7 @@ npm run web
 │   ├── index.tsx                # Splash Screen with book squircle emblem & progress track
 │   └── library.tsx              # Library catalog screen (toolbar, list/grid, search, FAB)
 ├── components/
-│   ├── BookCard.tsx             # M3 Book card with cover, chips, and ActionSheetIOS / M3 menu
+│   ├── BookCard.tsx             # M3 Book card with cover, chips, and context menu
 │   ├── AddEditBookModal.tsx     # Add / Edit dialog with barcode scanner launcher
 │   ├── BookDetailsModal.tsx     # Full metadata showcase, price comparison & sub-books
 │   ├── DeleteConfirmDialog.tsx  # M3 Confirmation dialog before deletion
@@ -99,9 +99,9 @@ npm run web
 │   └── book.ts                  # TypeScript data contracts (Book, SubBook, BookType)
 ├── db/
 │   └── schema.ts                # SQLite schema specifications & DDL statements
-└── __tests__/                   # Unified Expo / Jest automated test suites
-    ├── AppLoads.test.tsx
-    ├── PrefilledData.test.tsx
-    ├── DataIntegrity.test.tsx
-    └── Functionality.test.tsx
+├── e2e/
+│   └── library-app.spec.ts      # Playwright multi-device end-to-end test suite
+├── scripts/
+│   └── server.js                # Local web server for E2E testing
+└── playwright.config.ts         # Playwright multi-device configuration
 ```
