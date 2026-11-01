@@ -97,6 +97,8 @@ npm run web
 │   └── sampleBooks.ts           # Centralized catalog dataset and lookup utilities
 ├── types/
 │   └── book.ts                  # TypeScript data contracts (Book, SubBook, BookType)
+├── db/
+│   └── schema.ts                # SQLite schema specifications & DDL statements
 ├── e2e/
 │   └── library-app.spec.ts      # Playwright multi-device end-to-end test suite
 ├── scripts/
