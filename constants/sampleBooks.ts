@@ -1,0 +1,103 @@
+import { Book } from '../types/book';
+
+export const SAMPLE_BOOKS: Book[] = [
+  {
+    id: 'b1a2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+    isbn: '9780140449136',
+    title: 'The Count of Monte Cristo',
+    author: 'Alexandre Dumas',
+    actualPrice: 24.99,
+    paidPrice: 18.50,
+    bookType: 'PHYSICAL',
+    language: 'English',
+    shelfLocation: 'Shelf A - Classics #04',
+    coverImageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80',
+    isCombination: false,
+    subBooks: [],
+    createdAt: '2026-10-15T10:30:00Z',
+    updatedAt: '2026-10-15T10:30:00Z',
+  },
+  {
+    id: 'c2b3d4e5-f6a1-4b2c-9d3e-4f5a6b7c8d9e',
+    isbn: '9780061120084',
+    title: 'To Kill a Mockingbird',
+    author: 'Harper Lee',
+    actualPrice: 16.99,
+    paidPrice: 12.00,
+    bookType: 'PHYSICAL',
+    language: 'English',
+    shelfLocation: 'Shelf B - Fiction #12',
+    coverImageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80',
+    isCombination: false,
+    subBooks: [],
+    createdAt: '2026-10-18T14:20:00Z',
+    updatedAt: '2026-10-18T14:20:00Z',
+  },
+  {
+    id: 'd3c4e5f6-a1b2-4c3d-0e4f-5a6b7c8d9e0f',
+    isbn: '9780547928227',
+    title: 'The Lord of the Rings: The 3-Volume Anthology (Special Edition Box Set)',
+    author: 'J.R.R. Tolkien',
+    actualPrice: 75.00,
+    paidPrice: 54.99,
+    bookType: 'PHYSICAL',
+    language: 'English',
+    shelfLocation: 'Shelf C - Fantasy #01',
+    coverImageUrl: 'https://images.unsplash.com/photo-1665077713402-ad959854d778?auto=format&fit=crop&w=400&q=80',
+    isCombination: true,
+    subBooks: [
+      { subBookNumber: 1, name: 'Book 1', title: 'The Fellowship of the Ring', author: 'J.R.R. Tolkien' },
+      { subBookNumber: 2, name: 'Book 2', title: 'The Two Towers', author: 'J.R.R. Tolkien' },
+      { subBookNumber: 3, name: 'Book 3', title: 'The Return of the King', author: 'J.R.R. Tolkien' },
+    ],
+    createdAt: '2026-10-22T09:15:00Z',
+    updatedAt: '2026-10-22T09:15:00Z',
+  },
+  {
+    id: 'e4d5f6a1-b2c3-4d4e-1f5a-6b7c8d9e0f1a',
+    isbn: '9780143424123',
+    title: 'Godaan (गोदान)',
+    author: 'Munshi Premchand',
+    actualPrice: 12.50,
+    paidPrice: 8.99,
+    bookType: 'EBOOK',
+    language: 'Hindi',
+    shelfLocation: 'Digital Vault / eReader',
+    coverImageUrl: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80',
+    isCombination: false,
+    subBooks: [],
+    createdAt: '2026-10-25T16:45:00Z',
+    updatedAt: '2026-10-25T16:45:00Z',
+  },
+  {
+    id: 'f5e6a1b2-c3d4-4e5f-2a6b-7c8d9e0f1a2b',
+    isbn: '9780743273565',
+    title: 'The Great Gatsby',
+    author: 'F. Scott Fitzgerald',
+    actualPrice: 15.00,
+    paidPrice: 9.99,
+    bookType: 'EBOOK',
+    language: 'English',
+    shelfLocation: 'Digital Vault / Kindle',
+    coverImageUrl: 'https://images.unsplash.com/photo-1774529286258-caa40d3b7992?auto=format&fit=crop&w=400&q=80',
+    isCombination: false,
+    subBooks: [],
+    createdAt: '2026-10-28T11:00:00Z',
+    updatedAt: '2026-10-28T11:00:00Z',
+  },
+];
+
+export const findBookByIsbn = (isbn: string): Book | undefined => {
+  const target = isbn.trim();
+  return SAMPLE_BOOKS.find((b) => b.isbn === target);
+};
+
+export const SAMPLE_BARCODE_PRESETS = SAMPLE_BOOKS
+  .filter((b): b is Book & { isbn: string } => !!b.isbn)
+  .slice(0, 3)
+  .map((b) => ({
+    label: b.title.split(' ')[0] + ' ' + (b.title.split(' ')[1] || ''),
+    isbn: b.isbn,
+  }));
+
+

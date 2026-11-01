@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Library Manager",
+    "slug": "personal-library-manager",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "scheme": "librarymanager",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FDF8EC"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mrpcodecraft.librarymanager",
+      "userInterfaceStyle": "light",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Library Manager needs camera access to scan book ISBN barcodes.",
+        "NSPhotoLibraryUsageDescription": "Library Manager needs photo library access to choose book cover photos.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDisplayName": "Library Manager"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FDF8EC",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.mrpcodecraft.librarymanager"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Library Manager to access your camera to scan book ISBN barcodes."
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
