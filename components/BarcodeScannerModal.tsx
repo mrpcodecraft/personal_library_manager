@@ -14,7 +14,6 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, Shadows, Radii } from '../constants/theme';
-import { SAMPLE_BARCODE_PRESETS } from '../constants/sampleBooks';
 
 interface BarcodeScannerModalProps {
   visible: boolean;
@@ -247,23 +246,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
               <Text style={styles.manualToggleText}>Type ISBN Manually</Text>
             </Pressable>
           )}
-
-          {/* Sample Barcode presets */}
-          <View style={styles.testSection}>
-            <Text style={styles.testSectionLabel}>Sample Barcodes:</Text>
-            <View style={styles.chipsRow}>
-              {SAMPLE_BARCODE_PRESETS.map((item) => (
-                <Pressable
-                  key={item.isbn}
-                  testID={`scanner-preset-chip-${item.isbn}`}
-                  style={styles.testChip}
-                  onPress={() => handleBarcodeScanned({ data: item.isbn })}
-                >
-                  <Text style={styles.testChipText}>{item.label}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
         </View>
       </SafeAreaView>
     </Modal>
@@ -502,35 +484,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accentCoral,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  testSection: {
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  testSectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textSlate,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  testChip: {
-    backgroundColor: Colors.bgSageMist,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radii.full,
-    borderWidth: 1,
-    borderColor: Colors.borderSubtle,
-  },
-  testChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.textNavy,
   },
 });
 

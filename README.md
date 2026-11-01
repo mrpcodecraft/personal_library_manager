@@ -53,7 +53,7 @@ npm run test:report
 7. **Add Book Flow:** FAB click, form filling, format/language chip selection, catalog update to 6 volumes.
 8. **Edit Book Flow:** Context menu (`⋮`), pre-filled form verification, editing title/shelf, and in-place catalog update.
 9. **Delete Book Flow:** M3 Confirmation Dialog with SQL preview, operation cancellation verification, and atomic deletion.
-10. **Barcode Scanner Subsystem:** Camera viewfinder, laser targeting guideline, torch toggle, and preset ISBN auto-population.
+10. **Barcode Scanner Subsystem:** Camera viewfinder, laser targeting guideline, torch toggle, and ISBN auto-population.
 11. **Camera ISBN Barcode Scan:** Presents `test_img_1.jpg` to camera, detects EAN-13 barcode `9789354990366`, autofills book metadata, and saves book.
 12. **Manual Barcode Entry:** Searches ISBN `9789354990366` via manual entry input, autofills book metadata, and saves book.
 

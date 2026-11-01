@@ -1,7 +1,7 @@
 import { test, expect, Locator } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { SAMPLE_BOOKS, SAMPLE_BARCODE_PRESETS } from '../constants/sampleBooks';
+import { SAMPLE_BOOKS } from '../constants/sampleBooks';
 
 /**
  * Universal click helper that reliably triggers events across both desktop
@@ -442,22 +442,19 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     const torchBtn = page.locator('[data-testid="scanner-torch-button"]');
     await press(torchBtn);
 
-    // Tap a sample preset barcode (e.g. To Kill a Mockingbird: 9780061120084)
-    const preset = SAMPLE_BARCODE_PRESETS.find((p) => p.isbn === '9780061120084') || SAMPLE_BARCODE_PRESETS[0];
-    const presetChip = page.locator(`[data-testid="scanner-preset-chip-${preset.isbn}"]`);
-    await press(presetChip);
+    // Open manual ISBN input and enter ISBN (e.g. To Kill a Mockingbird: 9780061120084)
+    await press(page.locator('[data-testid="scanner-manual-toggle-button"]'));
+    const manualInput = page.locator('[data-testid="scanner-manual-input"]');
+    await expect(manualInput).toBeVisible();
+    await manualInput.fill('9780061120084');
+    await press(page.locator('[data-testid="scanner-manual-submit-button"]'));
 
-    // Verify Scanned Success Match Badge displays with ISBN
-    const successBadge = page.locator('[data-testid="scanner-success-badge"]');
-    await expect(successBadge).toBeVisible();
-    await expect(page.locator('[data-testid="scanner-success-isbn"]')).toHaveText(preset.isbn);
-
-    // Scanner modal auto-closes after success confirmation
+    // Scanner modal auto-closes after submission
     await expect(scannerModal).toBeHidden({ timeout: 5000 });
 
     // Verify Add Book form is auto-populated with metadata and feedback banner appears
     await expect(page.locator('[data-testid="add-edit-scan-feedback"]')).toBeVisible();
-    await expect(page.locator('[data-testid="input-book-isbn"]')).toHaveValue(preset.isbn);
+    await expect(page.locator('[data-testid="input-book-isbn"]')).toHaveValue('9780061120084');
 
     // Close Add Modal
     await press(page.locator('[data-testid="button-cancel-book"]'));

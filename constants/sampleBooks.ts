@@ -92,12 +92,4 @@ export const findBookByIsbn = (isbn: string): Book | undefined => {
   return SAMPLE_BOOKS.find((b) => b.isbn === target);
 };
 
-export const SAMPLE_BARCODE_PRESETS = SAMPLE_BOOKS
-  .filter((b): b is Book & { isbn: string } => !!b.isbn)
-  .slice(0, 3)
-  .map((b) => ({
-    label: b.title.split(' ')[0] + ' ' + (b.title.split(' ')[1] || ''),
-    isbn: b.isbn,
-  }));
-
 
