@@ -27,7 +27,7 @@ The application uses **Playwright** as its single, complete End-to-End automated
 ### Run Automated Tests
 
 ```bash
-# Run all 44 tests across all 4 target devices headlessly
+# Run all 48 tests across all 4 target devices headlessly
 npm test
 
 # Run tests with interactive Playwright UI
@@ -97,8 +97,6 @@ npm run web
 │   └── sampleBooks.ts           # Centralized catalog dataset and lookup utilities
 ├── types/
 │   └── book.ts                  # TypeScript data contracts (Book, SubBook, BookType)
-├── db/
-│   └── schema.ts                # SQLite schema specifications & DDL statements
 ├── e2e/
 │   └── library-app.spec.ts      # Playwright multi-device end-to-end test suite
 ├── scripts/

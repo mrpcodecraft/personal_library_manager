@@ -9,7 +9,6 @@ import {
   ScrollView,
   Switch,
   Platform,
-  Dimensions,
   KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';

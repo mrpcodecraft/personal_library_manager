@@ -12,11 +12,8 @@ export const Colors = {
   textNavy: '#1A2130',
   textSlate: '#5A6578',
   borderSubtle: '#E2DDD1',
-
-  surfaceTint: 'rgba(247, 176, 138, 0.08)',
   white: '#FFFFFF',
   danger: '#BA1A1A',
-  dangerContainer: '#FFDAD6',
 };
 
 export const Shadows = {
