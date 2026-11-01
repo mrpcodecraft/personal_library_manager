@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,8 @@ import { BookCard } from '../components/BookCard';
 import { AddEditBookModal } from '../components/AddEditBookModal';
 import { BookDetailsModal } from '../components/BookDetailsModal';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
-import { DeviceTestModal } from '../components/DeviceTestModal';
+
+const STORAGE_KEY = '@library_books';
 
 export default function LibraryScreen() {
   const router = useRouter();
@@ -33,7 +34,26 @@ export default function LibraryScreen() {
   const defaultCols = isDesktop ? 3 : isWebOrTablet ? 2 : 1;
 
   // Visual state
-  const [booksList, setBooksList] = useState<Book[]>(SAMPLE_BOOKS);
+  const [booksList, setBooksList] = useState<Book[]>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return SAMPLE_BOOKS;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(booksList));
+      } catch {}
+    }
+  }, [booksList]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(isWebOrTablet ? 'grid' : 'list');
@@ -41,7 +61,6 @@ export default function LibraryScreen() {
 
   // Modals state
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
-  const [isDeviceTestModalOpen, setIsDeviceTestModalOpen] = useState(false);
   const [selectedBookForEdit, setSelectedBookForEdit] = useState<Book | null>(null);
   const [selectedBookForDetails, setSelectedBookForDetails] = useState<Book | null>(null);
   const [selectedBookForDelete, setSelectedBookForDelete] = useState<Book | null>(null);
@@ -169,20 +188,6 @@ export default function LibraryScreen() {
             />
           </Pressable>
 
-          {/* Cross-Device Test Runner Trigger */}
-          <Pressable
-            testID="library-device-test-button"
-            style={styles.iconActionButton}
-            onPress={() => setIsDeviceTestModalOpen(true)}
-            accessibilityLabel="Run Cross-Device Tests"
-          >
-            <Ionicons
-              name="shield-checkmark-outline"
-              size={20}
-              color={Colors.accentCoral}
-            />
-          </Pressable>
-
           {/* Design Preview Toggle: Empty State vs Populated */}
           <Pressable
             testID="library-empty-preview-toggle-button"
@@ -306,14 +311,6 @@ export default function LibraryScreen() {
         book={selectedBookForDelete}
         onCancel={() => setSelectedBookForDelete(null)}
         onConfirm={handleConfirmDelete}
-      />
-
-      {/* Cross-Device Test Runner Modal */}
-      <DeviceTestModal
-        visible={isDeviceTestModalOpen}
-        onClose={() => setIsDeviceTestModalOpen(false)}
-        currentBooks={booksList}
-        onResetBooks={() => setBooksList(SAMPLE_BOOKS)}
       />
     </SafeAreaView>
   );

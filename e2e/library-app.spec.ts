@@ -1,6 +1,6 @@
 import { test, expect, Locator } from '@playwright/test';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { SAMPLE_BOOKS, SAMPLE_BARCODE_PRESETS } from '../constants/sampleBooks';
 
 /**
@@ -55,7 +55,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="library-search-toggle-button"]')).toBeVisible();
     await expect(page.locator('[data-testid="library-view-toggle-button"]')).toBeVisible();
     await expect(page.locator('[data-testid="library-empty-preview-toggle-button"]')).toBeVisible();
-    await expect(page.locator('[data-testid="library-device-test-button"]')).toBeVisible();
     await expect(page.locator('[data-testid="library-fab-add-button"]')).toBeVisible();
 
     // Verify all 5 sample book cards are mounted
@@ -377,34 +376,7 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="add-edit-modal"]')).toBeHidden();
   });
 
-  test('11. Device Diagnostics Modal: opens test runner, displays hardware specs, and executes tests', async ({ page }) => {
-    await page.goto('/library');
-    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
-
-    // Open Device Test Runner Modal from AppBar
-    await press(page.locator('[data-testid="library-device-test-button"]'));
-    const deviceModal = page.locator('[data-testid="device-test-modal"]');
-    await expect(deviceModal).toBeVisible();
-    await expect(page.locator('[data-testid="device-test-title"]')).toHaveText('Device Test Runner');
-
-    // Hardware & Runtime Profile
-    await expect(page.locator('[data-testid="device-profile-card"]')).toBeVisible();
-    await expect(page.locator('[data-testid="device-type-label"]')).toBeVisible();
-
-    // Execute Live Test Suite on device
-    const runBtn = page.locator('[data-testid="device-test-run-button"]');
-    await expect(runBtn).toBeVisible();
-    await press(runBtn);
-
-    // Wait for tests to finish executing
-    await expect(page.locator('text=All 19 Assertions Passed')).toBeVisible({ timeout: 10000 });
-
-    // Close diagnostics modal
-    await press(page.locator('[data-testid="device-test-close-button"]'));
-    await expect(deviceModal).toBeHidden();
-  });
-
-  test('12. Camera ISBN Barcode Scan: shows test_img_1.jpg to camera, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
+  test('11. Camera ISBN Barcode Scan: shows test_img_1.jpg to camera, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
     // Grant camera permission for barcode scanner
     await page.context().grantPermissions(['camera']);
 
@@ -412,7 +384,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await page.goto('/library');
     await page.evaluate(() => {
       localStorage.clear();
-      sessionStorage.clear();
     });
     await page.reload();
     await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
@@ -430,7 +401,7 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="scanner-camera-container"]')).toBeVisible();
 
     // Show "test_img_1.jpg" image under "assets/barcode" folder to the camera
-    const barcodeImgPath = path.resolve(__dirname, '../assets/barcode/test_img_1.jpg');
+    const barcodeImgPath = path.resolve(process.cwd(), 'assets/barcode/test_img_1.jpg');
     expect(fs.existsSync(barcodeImgPath)).toBeTruthy();
     const barcodeImgBase64 = fs.readFileSync(barcodeImgPath).toString('base64');
 
@@ -523,16 +494,14 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Reset data and remove all saved data
     await page.evaluate(() => {
       localStorage.clear();
-      sessionStorage.clear();
     });
   });
 
-  test('13. Manual Barcode Entry on Scanner: searches ISBN 9789354990366, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
+  test('12. Manual Barcode Entry on Scanner: searches ISBN 9789354990366, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
     // Reset data to clean state before test
     await page.goto('/library');
     await page.evaluate(() => {
       localStorage.clear();
-      sessionStorage.clear();
     });
     await page.reload();
     await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
@@ -608,7 +577,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     // Reset data and remove all saved data
     await page.evaluate(() => {
       localStorage.clear();
-      sessionStorage.clear();
     });
   });
 

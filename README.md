@@ -90,8 +90,7 @@ npm run web
 │   ├── AddEditBookModal.tsx     # Add / Edit dialog with barcode scanner launcher
 │   ├── BookDetailsModal.tsx     # Full metadata showcase, price comparison & sub-books
 │   ├── DeleteConfirmDialog.tsx  # M3 Confirmation dialog before deletion
-│   ├── BarcodeScannerModal.tsx  # CameraView ISBN scanner with torch & laser targeting
-│   └── DeviceTestModal.tsx      # On-device verification runner & diagnostics suite
+│   └── BarcodeScannerModal.tsx  # CameraView ISBN scanner with torch & laser targeting
 ├── constants/
 │   ├── theme.ts                 # Material Design 3 color tokens, shadows, and radii
 │   └── sampleBooks.ts           # Centralized catalog dataset and lookup utilities
