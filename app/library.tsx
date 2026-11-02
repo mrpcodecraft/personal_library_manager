@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Book } from '../types/book';
+import { SAMPLE_BOOKS } from '../constants/sampleBooks';
 import { Colors, Shadows, Radii, Breakpoints } from '../constants/theme';
-import { bookStorage } from '../services/storage';
 import { BookCard } from '../components/BookCard';
 import { AddEditBookModal } from '../components/AddEditBookModal';
 import { BookDetailsModal } from '../components/BookDetailsModal';
@@ -29,7 +29,7 @@ export default function LibraryScreen() {
   const isDesktop = width >= Breakpoints.desktop;
   const defaultCols = isDesktop ? 3 : isWebOrTablet ? 2 : 1;
 
-  const [booksList, setBooksList] = useState<Book[]>([]);
+  const [booksList, setBooksList] = useState<Book[]>(SAMPLE_BOOKS);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(isWebOrTablet ? 'grid' : 'list');
@@ -38,21 +38,6 @@ export default function LibraryScreen() {
   const [selectedBookForEdit, setSelectedBookForEdit] = useState<Book | null>(null);
   const [selectedBookForDetails, setSelectedBookForDetails] = useState<Book | null>(null);
   const [selectedBookForDelete, setSelectedBookForDelete] = useState<Book | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    bookStorage.getBooks().then((books) => {
-      if (mounted) setBooksList(books);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const persistBooks = (updated: Book[]) => {
-    setBooksList(updated);
-    bookStorage.saveBooks(updated);
-  };
 
   const filteredBooks = useMemo(() => {
     if (!searchQuery.trim()) return booksList;
@@ -84,19 +69,19 @@ export default function LibraryScreen() {
   };
 
   const handleConfirmDelete = (book: Book) => {
-    const updated = booksList.filter((b) => b.id !== book.id);
-    persistBooks(updated);
+    setBooksList((prev) => prev.filter((b) => b.id !== book.id));
     setSelectedBookForDelete(null);
   };
 
   const handleSaveBook = (bookData: Partial<Book>) => {
     if (selectedBookForEdit) {
-      const updated = booksList.map((b) =>
-        b.id === selectedBookForEdit.id
-          ? { ...b, ...bookData, updatedAt: new Date().toISOString() }
-          : b
+      setBooksList((prev) =>
+        prev.map((b) =>
+          b.id === selectedBookForEdit.id
+            ? { ...b, ...bookData, updatedAt: new Date().toISOString() }
+            : b
+        )
       );
-      persistBooks(updated);
     } else {
       const newBook: Book = {
         id: `book-${Date.now()}`,
@@ -116,7 +101,7 @@ export default function LibraryScreen() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      persistBooks([newBook, ...booksList]);
+      setBooksList((prev) => [newBook, ...prev]);
     }
   };
 

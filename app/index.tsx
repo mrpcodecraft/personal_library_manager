@@ -10,7 +10,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import { Colors, Shadows, Radii } from '../constants/theme';
-import { bookStorage } from '../services/storage';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -21,9 +20,7 @@ export default function SplashScreenComponent() {
   useEffect(() => {
     async function initialize() {
       try {
-        await bookStorage.getBooks();
-      } catch (err) {
-        console.warn('Initialization error:', err);
+        // App is ready to mount
       } finally {
         setReady(true);
         await SplashScreen.hideAsync().catch(() => {});

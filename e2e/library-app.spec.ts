@@ -61,10 +61,6 @@ async function setupFakeCameraWithBarcodeImage(page: any, barcodeImageBase64: st
 
 async function resetAndNavigateToLibrary(page: any): Promise<number> {
   await page.goto('/library');
-  await page.evaluate(() => {
-    localStorage.clear();
-  });
-  await page.reload();
   await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
   const countText = await page.locator('[data-testid="library-volume-count"]').innerText();
   return parseInt(countText, 10) || 5;
@@ -267,12 +263,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
     await expect(page.locator('text=Atomic Habits')).toBeVisible();
     await expect(page.locator('text=by James Clear')).toBeVisible();
-
-    await page.reload();
-    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
-    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
-    await expect(page.locator('text=Atomic Habits')).toBeVisible();
-    await expect(page.locator('text=by James Clear')).toBeVisible();
   });
 
   test('8. Edit Book Flow: pre-fills attributes, modifies title and shelf, and updates card in-place', async ({ page }) => {
@@ -303,12 +293,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     const targetCard = page.locator(`[data-testid="book-card-${targetBook.id}"]`);
     await expect(targetCard.getByText('The Count of Monte Cristo (Anniversary Edition)')).toBeVisible();
     await expect(targetCard.getByText('Vault - Collector Shelf #88')).toBeVisible();
-
-    await page.reload();
-    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
-    const reloadedCard = page.locator(`[data-testid="book-card-${targetBook.id}"]`);
-    await expect(reloadedCard.getByText('The Count of Monte Cristo (Anniversary Edition)')).toBeVisible();
-    await expect(reloadedCard.getByText('Vault - Collector Shelf #88')).toBeVisible();
   });
 
   test('9. Delete Book Flow: verifies M3 Confirmation Dialog, cancellation, and atomic deletion', async ({ page }) => {
@@ -339,11 +323,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await press(page.locator('[data-testid="delete-confirm-button"]'));
     await expect(deleteDialog).toBeHidden();
 
-    await expect(page.locator(`[data-testid="book-card-${targetBook.id}"]`)).toBeHidden();
-    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('4 Volumes Cataloged');
-
-    await page.reload();
-    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
     await expect(page.locator(`[data-testid="book-card-${targetBook.id}"]`)).toBeHidden();
     await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('4 Volumes Cataloged');
   });
