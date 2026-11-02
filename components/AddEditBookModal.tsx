@@ -32,7 +32,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
 }) => {
   const isEditing = !!bookToEdit;
 
-  // Form State
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [isbn, setIsbn] = useState('');
@@ -44,7 +43,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
   const [isCombination, setIsCombination] = useState(false);
   const [subBooks, setSubBooks] = useState<SubBook[]>([]);
 
-  // Scanner modal state
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scanToastMessage, setScanToastMessage] = useState<string | null>(null);
 
@@ -61,7 +59,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
       setIsCombination(bookToEdit.isCombination || false);
       setSubBooks(bookToEdit.subBooks || []);
     } else {
-      // Reset form
       setTitle('');
       setAuthor('');
       setIsbn('');
@@ -123,7 +120,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
       return;
     }
 
-    // Remote metadata lookup
     try {
       const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${scannedCode}`);
       const data = await res.json();
@@ -137,7 +133,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
         return;
       }
     } catch {
-      // Network fallback
     }
 
     setScanToastMessage('Book details not found. Please enter manually.');
@@ -157,7 +152,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
         style={styles.modalBackdrop}
       >
         <View style={styles.modalContent}>
-          {/* Header */}
           <View style={styles.header}>
             <View>
               <Text testID="add-edit-title" style={styles.headerTitle}>
@@ -169,7 +163,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
             </View>
 
             <View style={styles.headerActions}>
-              {/* Barcode Scanner Header Button */}
               <Pressable
                 testID="add-edit-scan-button"
                 onPress={() => setIsScannerOpen(true)}
@@ -193,7 +186,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
             </View>
           </View>
 
-          {/* Scanner result toast feedback */}
           {scanToastMessage && (
             <View testID="add-edit-scan-feedback" style={styles.scannerFeedbackBanner}>
               <MaterialCommunityIcons name="information-outline" size={20} color={Colors.accentCoral} />
@@ -206,7 +198,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
             contentContainerStyle={styles.formScrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Title Input */}
             <View style={styles.inputGroup}>
               <View style={styles.inputLabelRow}>
                 <Text style={styles.inputLabel}>Title</Text>
@@ -222,7 +213,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               />
             </View>
 
-            {/* Author Input */}
             <View style={styles.inputGroup}>
               <View style={styles.inputLabelRow}>
                 <Text style={styles.inputLabel}>Author</Text>
@@ -238,7 +228,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               />
             </View>
 
-            {/* ISBN & Shelf Location */}
             <View style={styles.twoColumnRow}>
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>ISBN / Barcode</Text>
@@ -266,7 +255,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               </View>
             </View>
 
-            {/* Actual Price & Paid Price */}
             <View style={styles.twoColumnRow}>
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>Actual Price (MRP)</Text>
@@ -295,9 +283,7 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               </View>
             </View>
 
-            {/* Book Type & Language */}
             <View style={styles.twoColumnRow}>
-              {/* M3 Segmented Button for Book Type */}
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>Book Type</Text>
                 <View style={styles.segmentedContainer}>
@@ -339,7 +325,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
                 </View>
               </View>
 
-              {/* Language Selector */}
               <View style={[styles.inputGroup, { flex: 1 }]}>
                 <Text style={styles.inputLabel}>Language</Text>
                 <TextInput
@@ -353,7 +338,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               </View>
             </View>
 
-            {/* Combination / Multi-Book Toggle */}
             <View style={styles.combinationToggleCard}>
               <View style={styles.combinationInfo}>
                 <MaterialCommunityIcons
@@ -377,7 +361,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               />
             </View>
 
-            {/* Dynamic Sub-Books Section */}
             {isCombination && (
               <View style={styles.subBooksContainer}>
                 <View style={styles.subBooksHeader}>
@@ -455,7 +438,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
             )}
           </ScrollView>
 
-          {/* Footer Actions */}
           <View style={styles.footer}>
             <Pressable
               testID="button-cancel-book"
@@ -497,7 +479,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
           </View>
         </View>
 
-        {/* Dedicated Barcode Scanner Modal Screen */}
         <BarcodeScannerModal
           visible={isScannerOpen}
           onClose={() => setIsScannerOpen(false)}

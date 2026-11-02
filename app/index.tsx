@@ -18,15 +18,8 @@ export default function SplashScreenComponent() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    async function initialize() {
-      try {
-        // App is ready to mount
-      } finally {
-        setReady(true);
-        await SplashScreen.hideAsync().catch(() => {});
-      }
-    }
-    initialize();
+    setReady(true);
+    SplashScreen.hideAsync().catch(() => {});
   }, []);
 
   const handleNavigate = () => {

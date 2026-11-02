@@ -91,7 +91,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
       onRequestClose={onClose}
     >
       <SafeAreaView testID="barcode-scanner-modal" style={styles.container}>
-        {/* Top Header */}
         <View style={styles.header}>
           <Pressable testID="scanner-close-button" hitSlop={10} onPress={onClose} style={styles.headerIconButton}>
             <Ionicons name="close" size={24} color={Colors.white} />
@@ -99,10 +98,9 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
 
           <View style={styles.headerTitleContainer}>
             <Text testID="scanner-title" style={styles.headerTitle}>Scan ISBN Barcode</Text>
-            <Text style={styles.headerSubtitle}>EAN-13 / EAN-8 Book Code</Text>
+            <Text style={styles.headerSubtitle}>Point camera at the barcode</Text>
           </View>
 
-          {/* Torch toggle button */}
           <Pressable
             testID="scanner-torch-button"
             hitSlop={10}
@@ -120,7 +118,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
           </Pressable>
         </View>
 
-        {/* Viewfinder Camera Area */}
         <View testID="scanner-camera-container" style={styles.cameraContainer}>
           {permission?.granted ? (
             <CameraView
@@ -133,7 +130,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
               onBarcodeScanned={scannedResult ? undefined : handleBarcodeScanned}
             />
           ) : (
-            /* Camera Permission Fallback */
             <View style={styles.cameraFallbackBackground}>
               <Ionicons name="videocam-outline" size={48} color={Colors.bgSageBadge} />
               <Text style={styles.cameraNoticeTitle}>
@@ -158,27 +154,23 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
             </View>
           )}
 
-          {/* Viewfinder Dark Overlay Mask */}
           <View style={styles.overlay}>
             <View style={styles.overlayTop} />
 
             <View style={styles.overlayCenterRow}>
               <View style={styles.overlaySide} />
 
-              {/* Central Target Scanner Box */}
               <View
                 style={[
                   styles.targetBox,
                   scannedResult ? styles.targetBoxSuccess : null,
                 ]}
               >
-                {/* 4 Corner Targeting Brackets */}
                 <View style={[styles.corner, styles.cornerTL]} />
                 <View style={[styles.corner, styles.cornerTR]} />
                 <View style={[styles.corner, styles.cornerBL]} />
                 <View style={[styles.corner, styles.cornerBR]} />
 
-                {/* Animated Laser Scanning Line */}
                 {!scannedResult && (
                   <Animated.View
                     testID="scanner-laser-line"
@@ -189,7 +181,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
                   />
                 )}
 
-                {/* Scanned Success Match Badge */}
                 {scannedResult && (
                   <View testID="scanner-success-badge" style={styles.successBadge}>
                     <Ionicons name="checkmark-circle" size={32} color="#2E7D32" />
@@ -206,13 +197,11 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
           </View>
         </View>
 
-        {/* Bottom Control Dock */}
         <View style={styles.bottomDock}>
           <Text style={styles.instructionText}>
             Align the barcode on the back cover within the frame
           </Text>
 
-          {/* Manual Input Toggle */}
           {showManualInput ? (
             <View style={styles.manualInputRow}>
               <TextInput

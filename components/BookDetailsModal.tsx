@@ -104,7 +104,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
             </View>
 
             <View style={styles.priceCard}>
-              <Text style={styles.sectionSubtitle}>Price & Acquisition Comparison</Text>
+              <Text style={styles.sectionSubtitle}>Pricing Details</Text>
               <View style={styles.priceGrid}>
                 <View style={styles.priceColumn}>
                   <Text style={styles.priceLabel}>Retail (MRP)</Text>
@@ -130,7 +130,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
             </View>
 
             <View style={styles.metaSection}>
-              <Text style={styles.sectionSubtitle}>Inventory & Identification</Text>
+              <Text style={styles.sectionSubtitle}>Book Details</Text>
 
               <View style={styles.metaRow}>
                 <Text style={styles.metaKey}>ISBN Barcode:</Text>
@@ -138,7 +138,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
               </View>
 
               <View style={styles.metaRow}>
-                <Text style={styles.metaKey}>Catalog Identifier:</Text>
+                <Text style={styles.metaKey}>Catalog ID:</Text>
                 <Text style={styles.metaVal} numberOfLines={1}>
                   {book.id}
                 </Text>

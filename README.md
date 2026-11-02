@@ -1,81 +1,68 @@
-# Library Manager
+# Personal Library Manager
 
-An offline-first personal library management application built with **React Native (Expo)**, **Material Design 3**, and **TypeScript**.
+A cross-platform personal library catalog application built with **React Native (Expo)**, **Material Design 3**, and **TypeScript**.
 
 Developed by **mrpcodecraft**.
 
 ---
 
-## Design & UI Architecture
+## Features
 
-* **Design Language:** Modern Material Design 3 (Material You)
-* **Surface Architecture:** Clean surface elevation with continuous rounded corners (16dp for cards, 24dp for dialogs and modals).
-* **Color Palette:**
-  * Canvas Surface: Soft Warm Cream (`#FDF8EC`)
-  * Card Surface: Tonal Cream Card (`#F6F0E2`) with hairline border (`#E2DDD1`)
-  * Toolbar / AppBar: Sage Mist (`#E4EBE2`)
-  * Accent / Badges: Warm Coral (`#F2785C`) & Peach (`#F7B08A`)
-  * Typography: Deep Navy (`#1A2130`) & Slate Gray (`#5A6578`)
-* **Supported Platforms:** Android (Phone & Tablet), iOS (iPhone & iPad), and Progressive Web (Expo Web / React Native for Web).
+- **Book Catalog Management:** Add, edit, view, and delete books in your collection.
+- **Multi-Volume & Box Set Support:** Track bundled anthologies and sub-books with individual volume details.
+- **ISBN Barcode Scanning:** Scan book barcodes via device camera (with torch toggle) or enter ISBNs manually to autofill metadata.
+- **Dynamic Search & Filtering:** Filter books instantly by title, author, or ISBN.
+- **Flexible Views:** Toggle between grid and list layouts with responsive multi-column layouts across phones, tablets, and desktop.
+- **Pricing & Shelf Tracking:** Keep track of retail vs. purchase prices, savings, physical shelf locations, and book formats (Physical / eBook).
 
 ---
 
-## Automated Testing (Playwright Multi-Device E2E)
+## Getting Started
 
-The application uses **Playwright** as its automated testing framework. It executes end-to-end user flows programmatically across simulated Android, Apple iOS, Apple iPadOS, and Desktop Web viewports.
+### Prerequisites
 
-### Run Automated Tests
+- Node.js (v18 or later recommended)
+- npm or yarn
+
+### Installation
 
 ```bash
-# Run all 48 tests across all 4 target devices headlessly
-npm test
-
-# Run tests with interactive Playwright UI
-npm run test:ui
-
-# View latest HTML test report
-npm run test:report
+git clone <repo-url>
+cd personal_library_manager
+npm install
 ```
 
-### Multi-Device Targets:
-- **Apple iPhone (iOS):** `iPhone 14` viewport (390 × 844, 3x DPR, touch enabled)
-- **Apple iPad (iPadOS):** `iPad Pro 11` viewport (834 × 1194, 2x DPR, touch enabled)
-- **Android Phone (Android OS):** `Pixel 7` viewport (412 × 915, 2.625x DPR, touch enabled)
-- **Desktop Web:** Desktop viewport (1280 × 800)
-
-### Executed User Journeys per Device:
-1. **App Initial Launch:** Splash Screen branding, tagline, and navigation to catalog.
-2. **Catalog Loading:** AppBar, volume counter (`5 Volumes Cataloged`), search bar, layout controls, and FAB button.
-3. **Data Integrity:** Validates exact attributes for all 5 sample books (Title, Author, Shelf location, Paid/Retail prices, Format badges, and Language chips).
-4. **Book Details Modal:** Metadata display, calculated savings percentage, ISBN, Catalog ID, and bundled sub-books breakdown.
-5. **Search Filtering:** Dynamic query filtering by title, author, and ISBN, plus clear button restoration.
-6. **Layout Toggle:** Grid vs List view switching and responsive catalog layout.
-7. **Add Book Flow:** FAB click, form filling, format/language chip selection, catalog update to 6 volumes.
-8. **Edit Book Flow:** Context menu (`⋮`), pre-filled form verification, editing title/shelf, and in-place catalog update.
-9. **Delete Book Flow:** Confirmation Dialog, operation cancellation verification, and atomic deletion.
-10. **Barcode Scanner Subsystem:** Camera viewfinder, laser targeting guideline, torch toggle, and ISBN auto-population.
-11. **Camera ISBN Barcode Scan:** Decodes EAN-13 barcode `9789354990366` from camera stream, autofills book metadata, and saves book.
-12. **Manual Barcode Entry:** Searches ISBN `9789354990366` via manual entry input, autofills book metadata, and saves book.
-
----
-
-## Manual Testing with Expo Go (Optional)
-
-To preview and interact with the application live on physical or virtual devices:
+### Running the App
 
 ```bash
-# Start server for Expo Go
+# Start development server
 npm start
 
-# Or with a tunnel (for cellular or guest Wi-Fi)
-npm run start:tunnel
-
-# Or launch directly in your browser
+# Run in web browser
 npm run web
+
+# Start with tunnel (for physical device testing via Expo Go)
+npm run start:tunnel
 ```
 
-* **iPhone & iPad:** Scan the terminal QR code with the iOS Camera app -> Tap **"Open in Expo Go"**.
-* **Android Phones & Tablets:** Open the Expo Go app -> Tap **"Scan QR code"**.
+To run on a mobile device, scan the QR code generated in your terminal with **Expo Go** (Android) or the iOS Camera app (iOS).
+
+---
+
+## Testing
+
+The project includes an end-to-end test suite using **Playwright**, testing core flows across mobile and desktop viewports:
+
+```bash
+# Run tests headlessly
+npm test
+
+# Run tests in interactive UI mode
+npm run test:ui
+
+# View test report
+npm run test:report
+```
 
 ---
 
@@ -96,7 +83,7 @@ npm run web
 │   ├── theme.ts                 # Design tokens, shadows, and radii
 │   └── sampleBooks.ts           # Initial catalog dataset and lookup utilities
 ├── services/
-│   └── storage.ts               # Storage interface & persistence adapter
+│   └── storage.ts               # Storage interface & persistence contract
 ├── types/
 │   └── book.ts                  # TypeScript data contracts (Book, SubBook, BookType)
 ├── e2e/
@@ -105,3 +92,9 @@ npm run web
 │   └── server.js                # Local web server for E2E testing
 └── playwright.config.ts         # Playwright multi-device configuration
 ```
+
+---
+
+## License
+
+MIT
