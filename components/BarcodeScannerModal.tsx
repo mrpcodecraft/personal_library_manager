@@ -8,9 +8,9 @@ import {
   Animated,
   Platform,
   TextInput,
-  SafeAreaView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, Shadows, Radii } from '../constants/theme';
