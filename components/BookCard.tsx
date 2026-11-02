@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform, ActionSheetIOS } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,9 +20,8 @@ export const BookCard: React.FC<BookCardProps> = ({
   onPressDelete,
   viewMode = 'grid',
 }) => {
-  const [menuVisible, setMenuVisible] = React.useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const isGrid = viewMode === 'grid';
-
   const isPhysical = book.bookType === 'PHYSICAL';
 
   const handleOpenMenu = (e?: any) => {
@@ -52,24 +51,16 @@ export const BookCard: React.FC<BookCardProps> = ({
   };
 
   return (
-    <View
+    <Pressable
       testID={`book-card-${book.id}`}
       style={[styles.cardContainer, isGrid ? styles.gridCard : styles.listCard]}
+      android_ripple={{ color: 'rgba(26, 33, 48, 0.08)', foreground: true }}
+      onPress={() => onPressDetails(book)}
     >
-      <Pressable
-        testID={`book-card-pressable-${book.id}`}
-        android_ripple={{ color: 'rgba(26, 33, 48, 0.08)', foreground: true }}
-        style={[styles.pressableContent, !isGrid && styles.listPressableContent]}
-        onPress={() => onPressDetails(book)}
-      >
-        {/* Book Cover */}
-        <View
-          testID={`book-card-cover-${book.id}`}
-          style={isGrid ? styles.coverContainerGrid : styles.coverContainerList}
-        >
+      <View style={[styles.pressableContent, !isGrid && styles.listPressableContent]}>
+        <View style={isGrid ? styles.coverContainerGrid : styles.coverContainerList}>
           {book.coverImageUrl ? (
             <Image
-              testID={`book-card-image-${book.id}`}
               source={{ uri: book.coverImageUrl }}
               style={styles.coverImage}
               contentFit="cover"
@@ -83,21 +74,16 @@ export const BookCard: React.FC<BookCardProps> = ({
           )}
 
           {book.isCombination && (
-            <View
-              testID={`book-card-combo-tag-${book.id}`}
-              style={styles.comboFloatingTag}
-            >
+            <View style={styles.comboFloatingTag}>
               <MaterialCommunityIcons name="layers-triple-outline" size={12} color={Colors.textNavy} />
               <Text style={styles.comboFloatingText}>Combo ({book.subBooks?.length || 0})</Text>
             </View>
           )}
         </View>
 
-        {/* Book Details */}
         <View style={styles.detailsContainer}>
           <View style={styles.headerRow}>
             <Text
-              testID={`book-card-title-${book.id}`}
               style={styles.title}
               numberOfLines={2}
               ellipsizeMode="tail"
@@ -115,7 +101,6 @@ export const BookCard: React.FC<BookCardProps> = ({
           </View>
 
           <Text
-            testID={`book-card-author-${book.id}`}
             style={styles.author}
             numberOfLines={1}
           >
@@ -126,7 +111,6 @@ export const BookCard: React.FC<BookCardProps> = ({
             <View style={styles.shelfRow}>
               <Ionicons name="bookmark-outline" size={13} color={Colors.textSlate} />
               <Text
-                testID={`book-card-shelf-${book.id}`}
                 style={styles.shelfText}
                 numberOfLines={1}
               >
@@ -135,29 +119,19 @@ export const BookCard: React.FC<BookCardProps> = ({
             </View>
           )}
 
-          {/* Pricing Info */}
           <View style={styles.pricingRow}>
-            <Text
-              testID={`book-card-paid-price-${book.id}`}
-              style={styles.paidPrice}
-            >
+            <Text style={styles.paidPrice}>
               ${book.paidPrice.toFixed(2)}
             </Text>
             {book.actualPrice > book.paidPrice && (
-              <Text
-                testID={`book-card-actual-price-${book.id}`}
-                style={styles.actualPrice}
-              >
+              <Text style={styles.actualPrice}>
                 ${book.actualPrice.toFixed(2)}
               </Text>
             )}
           </View>
 
-          {/* Metadata Chips */}
           <View style={styles.chipsRow}>
-            {/* Type Badge */}
             <View
-              testID={`book-card-type-chip-${book.id}`}
               style={[
                 styles.chip,
                 isPhysical ? styles.chipPhysical : styles.chipEbook,
@@ -178,11 +152,7 @@ export const BookCard: React.FC<BookCardProps> = ({
               </Text>
             </View>
 
-            {/* Language Badge */}
-            <View
-              testID={`book-card-language-chip-${book.id}`}
-              style={[styles.chip, styles.chipLanguage]}
-            >
+            <View style={[styles.chip, styles.chipLanguage]}>
               <Ionicons name="globe-outline" size={12} color={Colors.textNavy} />
               <Text style={[styles.chipText, styles.chipTextLanguage]}>
                 {book.language}
@@ -190,9 +160,8 @@ export const BookCard: React.FC<BookCardProps> = ({
             </View>
           </View>
         </View>
-      </Pressable>
+      </View>
 
-      {/* Contextual Action Menu Dropdown */}
       {menuVisible && (
         <View
           testID={`book-card-context-menu-${book.id}`}
@@ -239,7 +208,7 @@ export const BookCard: React.FC<BookCardProps> = ({
           </Pressable>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 };
 
@@ -435,4 +404,3 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.borderSubtle,
   },
 });
-

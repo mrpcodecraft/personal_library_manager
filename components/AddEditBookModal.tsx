@@ -110,7 +110,6 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
     setIsbn(scannedCode);
     setIsScannerOpen(false);
 
-    // Single source of truth lookup
     const match = findBookByIsbn(scannedCode);
     if (match) {
       setTitle(match.title);
@@ -164,8 +163,8 @@ export const AddEditBookModal: React.FC<AddEditBookModalProps> = ({
               <Text testID="add-edit-title" style={styles.headerTitle}>
                 {isEditing ? 'Update Book' : 'Add New Book'}
               </Text>
-              <Text testID="add-edit-subtitle" style={styles.headerSubtitle}>
-                {isEditing ? 'Modify catalog attributes' : 'Enter book metadata & shelf inventory'}
+              <Text style={styles.headerSubtitle}>
+                {isEditing ? 'Update book details' : 'Add a book to your collection'}
               </Text>
             </View>
 

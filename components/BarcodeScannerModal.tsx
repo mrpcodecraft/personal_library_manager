@@ -32,7 +32,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   const [manualIsbn, setManualIsbn] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
 
-  // Animated laser line moving across viewfinder
   const laserAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
       setManualIsbn('');
       setShowManualInput(false);
 
-      // Start looping laser animation
       Animated.loop(
         Animated.sequence([
           Animated.timing(laserAnim, {
@@ -60,11 +58,10 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({
   }, [visible]);
 
   const handleBarcodeScanned = (scanningResult: { data: string; type?: string }) => {
-    if (scannedResult) return; // Prevent multiple triggers
+    if (scannedResult) return;
     const isbnData = scanningResult.data;
     setScannedResult(isbnData);
 
-    // Audio / visual confirmation delay then return
     setTimeout(() => {
       onScanSuccess(isbnData);
       onClose();

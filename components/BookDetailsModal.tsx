@@ -44,21 +44,18 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
     >
       <View testID="book-details-modal" style={styles.modalBackdrop}>
         <View style={styles.modalContent}>
-          {/* Header */}
           <View style={styles.header}>
-            <Text testID="book-details-header-title" style={styles.headerTitle}>Book Details</Text>
+            <Text style={styles.headerTitle}>Book Details</Text>
             <Pressable testID="book-details-close-button" hitSlop={8} onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={22} color={Colors.textSlate} />
             </Pressable>
           </View>
 
           <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Top Showcase: Cover + Core Info */}
             <View style={styles.showcaseSection}>
               <View style={styles.coverWrapper}>
                 {book.coverImageUrl ? (
                   <Image
-                    testID="book-details-cover-image"
                     source={{ uri: book.coverImageUrl }}
                     style={styles.coverImage}
                     contentFit="cover"
@@ -72,19 +69,18 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
               </View>
 
               <View style={styles.showcaseDetails}>
-                <Text testID="book-details-title" style={styles.bookTitle}>{book.title}</Text>
-                <Text testID="book-details-author" style={styles.bookAuthor}>by {book.author}</Text>
+                <Text style={styles.bookTitle}>{book.title}</Text>
+                <Text style={styles.bookAuthor}>by {book.author}</Text>
 
                 {book.shelfLocation && (
                   <View style={styles.badgeRow}>
                     <Ionicons name="bookmark-outline" size={14} color={Colors.textNavy} />
-                    <Text testID="book-details-shelf" style={styles.badgeText}>{book.shelfLocation}</Text>
+                    <Text style={styles.badgeText}>{book.shelfLocation}</Text>
                   </View>
                 )}
 
                 <View style={styles.chipsRow}>
                   <View
-                    testID="book-details-type-chip"
                     style={[
                       styles.chip,
                       isPhysical ? styles.chipPhysical : styles.chipEbook,
@@ -100,55 +96,50 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
                     </Text>
                   </View>
 
-                  <View
-                    testID="book-details-language-chip"
-                    style={[styles.chip, styles.chipLanguage]}
-                  >
+                  <View style={[styles.chip, styles.chipLanguage]}>
                     <Text style={styles.chipLabelLanguage}>{book.language}</Text>
                   </View>
                 </View>
               </View>
             </View>
 
-            {/* Price Comparison Card */}
             <View style={styles.priceCard}>
               <Text style={styles.sectionSubtitle}>Price & Acquisition Comparison</Text>
               <View style={styles.priceGrid}>
                 <View style={styles.priceColumn}>
                   <Text style={styles.priceLabel}>Retail (MRP)</Text>
-                  <Text testID="book-details-retail-price" style={styles.priceOriginal}>${book.actualPrice.toFixed(2)}</Text>
+                  <Text style={styles.priceOriginal}>${book.actualPrice.toFixed(2)}</Text>
                 </View>
 
                 <View style={styles.priceDivider} />
 
                 <View style={styles.priceColumn}>
                   <Text style={styles.priceLabel}>Paid Price</Text>
-                  <Text testID="book-details-paid-price" style={styles.pricePaid}>${book.paidPrice.toFixed(2)}</Text>
+                  <Text style={styles.pricePaid}>${book.paidPrice.toFixed(2)}</Text>
                 </View>
 
                 <View style={styles.priceDivider} />
 
                 <View style={styles.priceColumn}>
                   <Text style={styles.priceLabel}>Savings</Text>
-                  <Text testID="book-details-savings" style={styles.priceSavings}>
+                  <Text style={styles.priceSavings}>
                     {savings > 0 ? `$${savings.toFixed(2)} (${savingsPercent}%)` : '$0.00'}
                   </Text>
                 </View>
               </View>
             </View>
 
-            {/* Metadata Information List */}
             <View style={styles.metaSection}>
               <Text style={styles.sectionSubtitle}>Inventory & Identification</Text>
 
               <View style={styles.metaRow}>
                 <Text style={styles.metaKey}>ISBN Barcode:</Text>
-                <Text testID="book-details-isbn" style={styles.metaVal}>{book.isbn || 'Not specified'}</Text>
+                <Text style={styles.metaVal}>{book.isbn || 'Not specified'}</Text>
               </View>
 
               <View style={styles.metaRow}>
                 <Text style={styles.metaKey}>Catalog Identifier:</Text>
-                <Text testID="book-details-catalog-id" style={styles.metaVal} numberOfLines={1}>
+                <Text style={styles.metaVal} numberOfLines={1}>
                   {book.id}
                 </Text>
               </View>
@@ -161,7 +152,6 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
               </View>
             </View>
 
-            {/* Bundled Sub-Books Collection */}
             {book.isCombination && (
               <View testID="book-details-sub-books-container" style={styles.subBooksBox}>
                 <View style={styles.subBooksTitleRow}>
@@ -177,7 +167,7 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
 
                 {book.subBooks && book.subBooks.length > 0 ? (
                   book.subBooks.map((sub, i) => (
-                    <View key={i} testID={`book-details-sub-book-${i}`} style={styles.subBookCard}>
+                    <View key={i} style={styles.subBookCard}>
                       <View style={styles.subBookBadge}>
                         <Text style={styles.subBookBadgeNum}>{sub.subBookNumber}</Text>
                       </View>
@@ -195,7 +185,6 @@ export const BookDetailsModal: React.FC<BookDetailsModalProps> = ({
             )}
           </ScrollView>
 
-          {/* Footer Actions */}
           <View style={styles.footer}>
             <Pressable
               testID="book-details-delete-button"
@@ -407,7 +396,7 @@ const styles = StyleSheet.create({
   priceSavings: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: Colors.accentCoral,
   },
   metaSection: {
     backgroundColor: Colors.bgCreamCard,
@@ -416,34 +405,39 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderSubtle,
     padding: 14,
     marginBottom: 16,
-    gap: 8,
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderSubtle,
   },
   metaKey: {
     fontSize: 12,
     color: Colors.textSlate,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   metaVal: {
     fontSize: 12,
-    color: Colors.textNavy,
     fontWeight: '700',
+    color: Colors.textNavy,
+    maxWidth: '65%',
+    textAlign: 'right',
   },
   subBooksBox: {
-    backgroundColor: Colors.bgSageMist,
+    backgroundColor: Colors.bgCreamCard,
     borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.borderSubtle,
     padding: 14,
     marginBottom: 16,
-    gap: 10,
   },
   subBooksTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 12,
   },
   subBooksHeading: {
     fontSize: 13,
@@ -451,22 +445,23 @@ const styles = StyleSheet.create({
     color: Colors.textNavy,
   },
   subBookCard: {
-    backgroundColor: Colors.bgCreamCard,
+    backgroundColor: Colors.bgCream,
+    padding: 10,
     borderRadius: 10,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: Colors.borderSubtle,
-    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   subBookBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: Colors.accentPeach,
-    alignItems: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.bgSageMist,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   subBookBadgeNum: {
     fontSize: 12,
@@ -489,18 +484,18 @@ const styles = StyleSheet.create({
   },
   subBookEmpty: {
     fontSize: 12,
-    color: Colors.textSlate,
     fontStyle: 'italic',
+    color: Colors.textSlate,
   },
   footer: {
     paddingHorizontal: 20,
     paddingVertical: 14,
-    backgroundColor: Colors.bgCreamCard,
+    backgroundColor: Colors.bgSageMist,
     borderTopWidth: 1,
     borderTopColor: Colors.borderSubtle,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
   },
   deleteButton: {
     flexDirection: 'row',
@@ -510,8 +505,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: Radii.full,
     borderWidth: 1,
-    borderColor: '#FFCDD2',
-    backgroundColor: '#FFEBEE',
+    borderColor: Colors.danger,
+    backgroundColor: Colors.bgCream,
   },
   deleteButtonText: {
     fontSize: 13,
@@ -533,4 +528,3 @@ const styles = StyleSheet.create({
     color: Colors.textNavy,
   },
 });
-

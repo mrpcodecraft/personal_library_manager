@@ -13,57 +13,47 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Book } from '../types/book';
-import { SAMPLE_BOOKS } from '../constants/sampleBooks';
 import { Colors, Shadows, Radii, Breakpoints } from '../constants/theme';
+import { bookStorage } from '../services/storage';
 import { BookCard } from '../components/BookCard';
 import { AddEditBookModal } from '../components/AddEditBookModal';
 import { BookDetailsModal } from '../components/BookDetailsModal';
 import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
-
-const STORAGE_KEY = '@library_books';
 
 export default function LibraryScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  // Layout responsiveness
   const isWebOrTablet = width >= Breakpoints.tablet;
   const isDesktop = width >= Breakpoints.desktop;
   const defaultCols = isDesktop ? 3 : isWebOrTablet ? 2 : 1;
 
-  // Visual state
-  const [booksList, setBooksList] = useState<Book[]>(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        const saved = window.localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch {}
-    }
-    return SAMPLE_BOOKS;
-  });
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(booksList));
-      } catch {}
-    }
-  }, [booksList]);
+  const [booksList, setBooksList] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(isWebOrTablet ? 'grid' : 'list');
 
-  // Modals state
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
   const [selectedBookForEdit, setSelectedBookForEdit] = useState<Book | null>(null);
   const [selectedBookForDetails, setSelectedBookForDetails] = useState<Book | null>(null);
   const [selectedBookForDelete, setSelectedBookForDelete] = useState<Book | null>(null);
 
-  // Filter catalog
+  useEffect(() => {
+    let mounted = true;
+    bookStorage.getBooks().then((books) => {
+      if (mounted) setBooksList(books);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const persistBooks = (updated: Book[]) => {
+    setBooksList(updated);
+    bookStorage.saveBooks(updated);
+  };
+
   const filteredBooks = useMemo(() => {
     if (!searchQuery.trim()) return booksList;
     const q = searchQuery.toLowerCase().trim();
@@ -75,7 +65,6 @@ export default function LibraryScreen() {
     );
   }, [booksList, searchQuery]);
 
-  // Action handlers
   const handleOpenAdd = () => {
     setSelectedBookForEdit(null);
     setIsAddEditModalOpen(true);
@@ -95,19 +84,19 @@ export default function LibraryScreen() {
   };
 
   const handleConfirmDelete = (book: Book) => {
-    setBooksList((prev) => prev.filter((b) => b.id !== book.id));
+    const updated = booksList.filter((b) => b.id !== book.id);
+    persistBooks(updated);
     setSelectedBookForDelete(null);
   };
 
   const handleSaveBook = (bookData: Partial<Book>) => {
     if (selectedBookForEdit) {
-      setBooksList((prev) =>
-        prev.map((b) =>
-          b.id === selectedBookForEdit.id
-            ? { ...b, ...bookData, updatedAt: new Date().toISOString() }
-            : b
-        )
+      const updated = booksList.map((b) =>
+        b.id === selectedBookForEdit.id
+          ? { ...b, ...bookData, updatedAt: new Date().toISOString() }
+          : b
       );
+      persistBooks(updated);
     } else {
       const newBook: Book = {
         id: `book-${Date.now()}`,
@@ -127,13 +116,12 @@ export default function LibraryScreen() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      setBooksList((prev) => [newBook, ...prev]);
+      persistBooks([newBook, ...booksList]);
     }
   };
 
   return (
     <SafeAreaView testID="library-screen" style={styles.safeContainer}>
-      {/* Top Header / Toolbar */}
       <View testID="library-appbar" style={styles.appBar}>
         <View style={styles.appBarMain}>
           <Pressable
@@ -153,7 +141,6 @@ export default function LibraryScreen() {
         </View>
 
         <View style={styles.toolbarControls}>
-          {/* Search Toggle Icon */}
           <Pressable
             testID="library-search-toggle-button"
             style={[
@@ -172,7 +159,6 @@ export default function LibraryScreen() {
             />
           </Pressable>
 
-          {/* View Toggle (Grid / List) for Web / Tablet */}
           <Pressable
             testID="library-view-toggle-button"
             style={styles.iconActionButton}
@@ -187,7 +173,6 @@ export default function LibraryScreen() {
         </View>
       </View>
 
-      {/* Inline Live-Filtering Search Input */}
       {isSearchActive && (
         <View style={styles.searchBarWrapper}>
           <View style={styles.searchBarContainer}>
@@ -210,10 +195,8 @@ export default function LibraryScreen() {
         </View>
       )}
 
-      {/* Main Catalog View */}
       <View style={styles.catalogArea}>
         {filteredBooks.length === 0 ? (
-          /* Empty State */
           <View testID="library-empty-state" style={styles.emptyContainer}>
             <View style={styles.emptyIllustrationCard}>
               <View style={styles.emptyIconCircle}>
@@ -221,7 +204,7 @@ export default function LibraryScreen() {
               </View>
               <Text testID="library-empty-title" style={styles.emptyTitle}>Library is empty.</Text>
               <Text style={styles.emptySubtitle}>
-                Add books to your private local-first collection with physical shelf locations or eBook references.
+                Add books to your personal collection with physical shelf locations or eBook references.
               </Text>
               <Pressable
                 testID="library-empty-add-button"
@@ -234,7 +217,6 @@ export default function LibraryScreen() {
             </View>
           </View>
         ) : (
-          /* Populated FlatList Grid / List */
           <FlatList
             testID="library-book-list"
             key={viewMode === 'grid' ? `grid-${defaultCols}` : 'list-1'}
@@ -258,7 +240,6 @@ export default function LibraryScreen() {
         )}
       </View>
 
-      {/* Floating Action Button */}
       <Pressable
         testID="library-fab-add-button"
         style={({ pressed }) => [
@@ -271,7 +252,6 @@ export default function LibraryScreen() {
         <Ionicons name="add" size={32} color={Colors.accentCoral} />
       </Pressable>
 
-      {/* Add / Edit Book Modal */}
       <AddEditBookModal
         visible={isAddEditModalOpen}
         bookToEdit={selectedBookForEdit}
@@ -279,7 +259,6 @@ export default function LibraryScreen() {
         onSave={handleSaveBook}
       />
 
-      {/* Book Details Modal */}
       <BookDetailsModal
         visible={!!selectedBookForDetails}
         book={selectedBookForDetails}
@@ -288,7 +267,6 @@ export default function LibraryScreen() {
         onDelete={handleOpenDelete}
       />
 
-      {/* M3 Delete Confirmation Dialog */}
       <DeleteConfirmDialog
         visible={!!selectedBookForDelete}
         book={selectedBookForDelete}
@@ -302,10 +280,10 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: Colors.bgCream, // #FDF8EC
+    backgroundColor: Colors.bgCream,
   },
   appBar: {
-    backgroundColor: Colors.bgSageMist, // #E4EBE2
+    backgroundColor: Colors.bgSageMist,
     paddingHorizontal: 16,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -451,16 +429,15 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 24, // bottom-6 (24dp)
-    right: 24,  // right-6 (24dp)
-    width: 56,  // 56dp
-    height: 56, // 56dp
-    borderRadius: Radii.card, // rounded-2xl
-    backgroundColor: Colors.accentPeach, // #F7B08A
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: Radii.card,
+    backgroundColor: Colors.accentPeach,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 99,
     ...Shadows.fab,
   },
 });
-

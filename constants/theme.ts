@@ -1,7 +1,3 @@
-/**
- * Application Theme & Design Tokens
- */
-
 export const Colors = {
   bgCream: '#FDF8EC',
   bgCreamCard: '#F6F0E2',
@@ -42,9 +38,9 @@ export const Shadows = {
 
 export const Radii = {
   sm: 8,
-  card: 16,     // rounded-2xl
-  modal: 24,    // rounded-3xl
-  full: 9999,   // rounded-full
+  card: 16,
+  modal: 24,
+  full: 9999,
 };
 
 export const Breakpoints = {
@@ -52,4 +48,3 @@ export const Breakpoints = {
   tablet: 768,
   desktop: 1024,
 };
-

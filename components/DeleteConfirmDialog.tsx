@@ -35,7 +35,6 @@ export const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
     >
       <View testID="delete-confirm-dialog" style={styles.dialogBackdrop}>
         <View style={styles.dialogCard}>
-          {/* Icon Header */}
           <View style={styles.iconContainer}>
             <Ionicons name="trash-outline" size={28} color={Colors.danger} />
           </View>
@@ -45,12 +44,6 @@ export const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
           <Text testID="delete-confirm-message" style={styles.dialogMessage}>
             Are you sure you want to remove <Text style={styles.boldText}>"{book.title}"</Text> from your personal catalog?
           </Text>
-
-          <View style={styles.sqlCodePreview}>
-            <Text testID="delete-confirm-sql-preview" style={styles.sqlCodeText}>
-              SQL: DELETE FROM books WHERE id = '{book.id.substring(0, 8)}...';
-            </Text>
-          </View>
 
           <View style={styles.actionsRow}>
             <Pressable
@@ -114,27 +107,11 @@ const styles = StyleSheet.create({
     color: Colors.textSlate,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   boldText: {
     fontWeight: '700',
     color: Colors.textNavy,
-  },
-  sqlCodePreview: {
-    backgroundColor: Colors.bgCreamCard,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.borderSubtle,
-    marginBottom: 20,
-    width: '100%',
-  },
-  sqlCodeText: {
-    fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: Colors.textSlate,
-    textAlign: 'center',
   },
   actionsRow: {
     flexDirection: 'row',
@@ -167,4 +144,3 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
 });
-

@@ -6,7 +6,6 @@ const { execSync } = require('child_process');
 const PORT = 3000;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
-// If web build does not exist, build it once
 if (!fs.existsSync(DIST_DIR) || !fs.existsSync(path.join(DIST_DIR, 'index.html'))) {
   console.log('[E2E Server] Exporting web distribution bundle for Playwright...');
   execSync('npx expo export --platform web', { stdio: 'inherit' });
@@ -28,6 +27,9 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+  req.on('error', () => {});
+  res.on('error', () => {});
+
   let reqPath = req.url.split('?')[0];
   if (reqPath === '/' || !path.extname(reqPath)) {
     reqPath = '/index.html';
@@ -37,14 +39,17 @@ const server = http.createServer((req, res) => {
 
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
-      // SPA Fallback to index.html
       const fallbackPath = path.join(DIST_DIR, 'index.html');
       fs.readFile(fallbackPath, (fallbackErr, data) => {
         if (fallbackErr) {
-          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          if (!res.headersSent) {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+          }
           res.end('Not Found');
         } else {
-          res.writeHead(200, { 'Content-Type': 'text/html' });
+          if (!res.headersSent) {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+          }
           res.end(data);
         }
       });
@@ -54,12 +59,25 @@ const server = http.createServer((req, res) => {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-    res.writeHead(200, { 'Content-Type': contentType });
-    fs.createReadStream(filePath).pipe(res);
+    if (!res.headersSent) {
+      res.writeHead(200, { 'Content-Type': contentType });
+    }
+    const stream = fs.createReadStream(filePath);
+    stream.on('error', () => {
+      res.end();
+    });
+    stream.pipe(res);
   });
+});
+
+server.on('error', (err) => {
+  console.error('[E2E Server] Server error:', err);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[E2E Server] Uncaught exception:', err);
 });
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`[E2E Server] Running on http://127.0.0.1:${PORT}`);
 });
-

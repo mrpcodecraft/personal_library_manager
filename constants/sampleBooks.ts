@@ -2,7 +2,7 @@ import { Book } from '../types/book';
 
 export const SAMPLE_BOOKS: Book[] = [
   {
-    id: 'b1a2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+    id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
     isbn: '9780140449136',
     title: 'The Count of Monte Cristo',
     author: 'Alexandre Dumas',
@@ -10,7 +10,7 @@ export const SAMPLE_BOOKS: Book[] = [
     paidPrice: 18.50,
     bookType: 'PHYSICAL',
     language: 'English',
-    shelfLocation: 'Shelf A - Classics #04',
+    shelfLocation: 'Classics - Shelf A4',
     coverImageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80',
     isCombination: false,
     subBooks: [],
@@ -18,7 +18,7 @@ export const SAMPLE_BOOKS: Book[] = [
     updatedAt: '2026-10-15T10:30:00Z',
   },
   {
-    id: 'c2b3d4e5-f6a1-4b2c-9d3e-4f5a6b7c8d9e',
+    id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
     isbn: '9780061120084',
     title: 'To Kill a Mockingbird',
     author: 'Harper Lee',
@@ -26,7 +26,7 @@ export const SAMPLE_BOOKS: Book[] = [
     paidPrice: 12.00,
     bookType: 'PHYSICAL',
     language: 'English',
-    shelfLocation: 'Shelf B - Fiction #12',
+    shelfLocation: 'Fiction - Shelf B2',
     coverImageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80',
     isCombination: false,
     subBooks: [],
@@ -34,7 +34,7 @@ export const SAMPLE_BOOKS: Book[] = [
     updatedAt: '2026-10-18T14:20:00Z',
   },
   {
-    id: 'd3c4e5f6-a1b2-4c3d-0e4f-5a6b7c8d9e0f',
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     isbn: '9780547928227',
     title: 'The Lord of the Rings: The 3-Volume Anthology (Special Edition Box Set)',
     author: 'J.R.R. Tolkien',
@@ -42,7 +42,7 @@ export const SAMPLE_BOOKS: Book[] = [
     paidPrice: 54.99,
     bookType: 'PHYSICAL',
     language: 'English',
-    shelfLocation: 'Shelf C - Fantasy #01',
+    shelfLocation: 'Fantasy - Shelf C1',
     coverImageUrl: 'https://images.unsplash.com/photo-1665077713402-ad959854d778?auto=format&fit=crop&w=400&q=80',
     isCombination: true,
     subBooks: [
@@ -54,7 +54,7 @@ export const SAMPLE_BOOKS: Book[] = [
     updatedAt: '2026-10-22T09:15:00Z',
   },
   {
-    id: 'e4d5f6a1-b2c3-4d4e-1f5a-6b7c8d9e0f1a',
+    id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
     isbn: '9780143424123',
     title: 'Godaan (गोदान)',
     author: 'Munshi Premchand',
@@ -62,7 +62,7 @@ export const SAMPLE_BOOKS: Book[] = [
     paidPrice: 8.99,
     bookType: 'EBOOK',
     language: 'Hindi',
-    shelfLocation: 'Digital Vault / eReader',
+    shelfLocation: 'eReader',
     coverImageUrl: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80',
     isCombination: false,
     subBooks: [],
@@ -70,7 +70,7 @@ export const SAMPLE_BOOKS: Book[] = [
     updatedAt: '2026-10-25T16:45:00Z',
   },
   {
-    id: 'f5e6a1b2-c3d4-4e5f-2a6b-7c8d9e0f1a2b',
+    id: 'd3b07384-d113-4674-8b63-0a758784d7a8',
     isbn: '9780743273565',
     title: 'The Great Gatsby',
     author: 'F. Scott Fitzgerald',
@@ -78,7 +78,7 @@ export const SAMPLE_BOOKS: Book[] = [
     paidPrice: 9.99,
     bookType: 'EBOOK',
     language: 'English',
-    shelfLocation: 'Digital Vault / Kindle',
+    shelfLocation: 'Kindle',
     coverImageUrl: 'https://images.unsplash.com/photo-1774529286258-caa40d3b7992?auto=format&fit=crop&w=400&q=80',
     isCombination: false,
     subBooks: [],
@@ -91,5 +91,3 @@ export const findBookByIsbn = (isbn: string): Book | undefined => {
   const target = isbn.trim();
   return SAMPLE_BOOKS.find((b) => b.isbn === target);
 };
-
-
