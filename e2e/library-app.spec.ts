@@ -12,53 +12,6 @@ async function press(locator: Locator) {
   }
 }
 
-async function mockGoogleBooksApi(page: any) {
-  await page.route(/googleapis\.com\/books\/v1\/volumes/, (route: any) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      json: {
-        items: [
-          {
-            volumeInfo: {
-              title: 'Guerrilla Warfare',
-              authors: ['Ernesto Guevara Che'],
-              language: 'en',
-            },
-          },
-        ],
-      },
-    })
-  );
-}
-
-async function setupFakeCameraWithBarcodeImage(page: any, barcodeImageBase64: string) {
-  await page.context().grantPermissions(['camera']);
-  await page.addInitScript((imageB64: string) => {
-    if (!navigator.mediaDevices) {
-      (navigator as any).mediaDevices = {};
-    }
-    navigator.mediaDevices.getUserMedia = async () => {
-      const img = new Image();
-      img.src = 'data:image/jpeg;base64,' + imageB64;
-      if (img.decode) {
-        await img.decode();
-      } else {
-        await new Promise((r) => { img.onload = r; });
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0);
-      setInterval(() => {
-        ctx.drawImage(img, 0, 0);
-      }, 40);
-      return canvas.captureStream(25);
-    };
-  }, barcodeImageBase64);
-}
-
 async function resetAndNavigateToLibrary(page: any): Promise<number> {
   await page.goto('/library');
   await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
@@ -263,6 +216,13 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
     await expect(page.locator('text=Atomic Habits')).toBeVisible();
     await expect(page.locator('text=by James Clear')).toBeVisible();
+
+    // Verify cross-session persistence across page reload
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('6 Volumes Cataloged');
+    await expect(page.locator('text=Atomic Habits')).toBeVisible();
+    await expect(page.locator('text=by James Clear')).toBeVisible();
   });
 
   test('8. Edit Book Flow: pre-fills attributes, modifies title and shelf, and updates card in-place', async ({ page }) => {
@@ -293,6 +253,13 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     const targetCard = page.locator(`[data-testid="book-card-${targetBook.id}"]`);
     await expect(targetCard.getByText('The Count of Monte Cristo (Anniversary Edition)')).toBeVisible();
     await expect(targetCard.getByText('Vault - Collector Shelf #88')).toBeVisible();
+
+    // Verify cross-session persistence across page reload
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
+    const persistedCard = page.locator(`[data-testid="book-card-${targetBook.id}"]`);
+    await expect(persistedCard.getByText('The Count of Monte Cristo (Anniversary Edition)')).toBeVisible();
+    await expect(persistedCard.getByText('Vault - Collector Shelf #88')).toBeVisible();
   });
 
   test('9. Delete Book Flow: verifies M3 Confirmation Dialog, cancellation, and atomic deletion', async ({ page }) => {
@@ -323,6 +290,12 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await press(page.locator('[data-testid="delete-confirm-button"]'));
     await expect(deleteDialog).toBeHidden();
 
+    await expect(page.locator(`[data-testid="book-card-${targetBook.id}"]`)).toBeHidden();
+    await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('4 Volumes Cataloged');
+
+    // Verify cross-session persistence across page reload
+    await page.reload();
+    await page.waitForSelector('[data-testid="library-screen"]', { timeout: 15000 });
     await expect(page.locator(`[data-testid="book-card-${targetBook.id}"]`)).toBeHidden();
     await expect(page.locator('[data-testid="library-volume-count"]')).toHaveText('4 Volumes Cataloged');
   });
@@ -361,13 +334,9 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     await expect(page.locator('[data-testid="add-edit-modal"]')).toBeHidden();
   });
 
-  test('11. Camera ISBN Barcode Scan: feeds test_img_1.jpg to camera stream, decodes barcode, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
-    const barcodeImgPath = path.resolve(process.cwd(), 'assets/barcode/test_img_1.jpg');
-    expect(fs.existsSync(barcodeImgPath)).toBeTruthy();
-    const barcodeImgBase64 = fs.readFileSync(barcodeImgPath).toString('base64');
-
-    await setupFakeCameraWithBarcodeImage(page, barcodeImgBase64);
-    await mockGoogleBooksApi(page);
+  test('11. Camera ISBN Barcode Scan: shows test_img_1.jpg to camera, decodes barcode, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
+    // Grant camera permission for actual camera in browser
+    await page.context().grantPermissions(['camera']);
 
     const initialCount = await resetAndNavigateToLibrary(page);
 
@@ -379,6 +348,50 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
     const scannerModal = page.locator('[data-testid="barcode-scanner-modal"]');
     await expect(scannerModal).toBeVisible();
     await expect(page.locator('[data-testid="scanner-camera-container"]')).toBeVisible();
+
+    // Show "test_img_1.jpg" image under "assets/barcode" folder to the camera
+    const barcodeImgPath = path.resolve(process.cwd(), 'assets/barcode/test_img_1.jpg');
+    expect(fs.existsSync(barcodeImgPath)).toBeTruthy();
+    const barcodeImgBase64 = fs.readFileSync(barcodeImgPath).toString('base64');
+
+    // Present image to camera viewfinder and feed frame stream to camera video element
+    await page.evaluate(async (b64) => {
+      const container = document.querySelector('[data-testid="scanner-camera-container"]') || document.body;
+      const img = document.createElement('img');
+      img.setAttribute('data-testid', 'scanner-camera-test-image');
+      img.src = 'data:image/jpeg;base64,' + b64;
+      img.style.position = 'absolute';
+      img.style.inset = '0';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'contain';
+      img.style.zIndex = '1';
+      container.appendChild(img);
+
+      const image = new Image();
+      image.src = 'data:image/jpeg;base64,' + b64;
+      await new Promise((resolve) => { image.onload = resolve; });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(image, 0, 0);
+        setInterval(() => {
+          ctx.drawImage(image, 0, 0);
+        }, 40);
+      }
+
+      const video = container.querySelector('video') || document.querySelector('video');
+      if (video) {
+        const stream = canvas.captureStream(25);
+        video.srcObject = stream;
+        await video.play().catch(() => {});
+      }
+    }, barcodeImgBase64);
+
+    await expect(page.locator('[data-testid="scanner-camera-test-image"]')).toBeVisible();
 
     const successBadge = page.locator('[data-testid="scanner-success-badge"]');
     await expect(successBadge).toBeVisible({ timeout: 10000 });
@@ -403,7 +416,6 @@ test.describe('Library Manager - Complete End-to-End Automated Testing', () => {
   });
 
   test('12. Manual Barcode Entry on Scanner: searches ISBN 9789354990366, fetches Guerrilla Warfare metadata, and saves book', async ({ page }) => {
-    await mockGoogleBooksApi(page);
     const initialCount = await resetAndNavigateToLibrary(page);
 
     await press(page.locator('[data-testid="library-fab-add-button"]'));
